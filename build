@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -eu
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
+php -d include_path="$PWD"/src/php -f src/php/build.php -- "$@"
+if [[ $# -ne 0 ]]; then exit; fi
+
+npx webpack --progress

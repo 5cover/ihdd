@@ -1,0 +1,17 @@
+{
+  "liveSassCompile.settings.forceBaseDirectory": "/src/scss",
+  "liveSassCompile.settings.formats": [
+    {
+      "format": "compressed",
+      "extensionName": ".css",
+      "savePathReplacementPairs": {
+        "/src/scss": "/docs/css"
+      },
+    }
+  ],
+  "search.exclude": {
+    "**/*.js": false
+  },
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.preferences.importModuleSpecifierEnding": "js",
+}

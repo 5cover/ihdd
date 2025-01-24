@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -eu
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
+if ! [[ -h ihdd ]]; then
+    ln -sT docs ihdd
+fi
+php -S localhost:5555

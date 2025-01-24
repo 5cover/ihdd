@@ -1,0 +1,30 @@
+{
+  "name": "ihdd",
+  "version": "1.0.0",
+  "description": "I Hate Data Dictionaries",
+  "homepage": "https://github.com/5cover/ihdd#readme",
+  "bugs": {
+    "url": "https://github.com/5cover/ihdd/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/5cover/ihdd.git"
+  },
+  "license": "Unlicense",
+  "author": "5cover",
+  "type": "module",
+  "main": "src/ts/index.ts",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "xlsx-js-style": "^1.2.0"
+  },
+  "devDependencies": {
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1"
+  }
+}
