@@ -16,10 +16,10 @@
   "typescript.preferences.importModuleSpecifierEnding": "minimal",
   "json.schemas": [
     {
+      "url": "/schemas/data_dictionary.json",
       "fileMatch": [
         "data/413.json"
-      ],
-      "url": "/schemas/data_dictionary.json"
+      ]
     }
   ],
 }

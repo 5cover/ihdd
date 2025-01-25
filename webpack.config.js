@@ -7,7 +7,7 @@ const cfg = {
         filename: 'index.js',
         path: path.resolve('docs/js'),
     },
-    mode: 'production',
+    mode: 'development',
     resolve: {
         extensions: ['.ts', '.js'], // Resolve both .ts and .js files
     },
