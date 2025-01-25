@@ -13,5 +13,13 @@
     "**/*.js": false
   },
   "typescript.preferences.importModuleSpecifier": "relative",
-  "typescript.preferences.importModuleSpecifierEnding": "js",
+  "typescript.preferences.importModuleSpecifierEnding": "minimal",
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "data/413.json"
+      ],
+      "url": "/schemas/data_dictionary.json"
+    }
+  ],
 }

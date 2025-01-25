@@ -1,6 +1,7 @@
-const path = require('path');
+import * as path from 'path';
 
-module.exports = {
+/** @var {import('webpack').Configuration} */
+const cfg = {
     entry: './src/ts/index.ts',
     output: {
         filename: 'index.js',
@@ -20,3 +21,5 @@ module.exports = {
         ],
     },
 };
+
+export default cfg;

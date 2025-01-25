@@ -1,9 +1,5 @@
 export const siteBaseUrl = '/ihdd';
 
-export async function loadHtml(path: string) {
-    return new DOMParser().parseFromString(await (await fetch(path)).text(), 'text/html').documentElement
-}
-
 export function requireElementById(id: string) {
     const el = document.getElementById(id);
     if (el === null) {
@@ -12,13 +8,13 @@ export function requireElementById(id: string) {
     return el;
 }
 
-export function notnull<T>(arg: T | null, msg: string) {
-    if (arg === null) {
-        throw new Error(msg);
-    }
-    return arg;
+export function textCell(value: string, style?: object) {
+    return { v: value, t: 's', s: style };
 }
 
-export function acce<K extends keyof HTMLElementTagNameMap>(parent: HTMLElement, childTagName: K) {
-    return parent.appendChild(document.createElement(childTagName));
+export function pascalize(s: string) {
+    // Converts from snake_case to PascalCase
+    // - Replace the first non-underscore character by its uppercase version.
+    // - Replace undescores followed by a non-underscore character by the uppercase version of that character (replacing both characters by one, effectively removing the undercore)
+    return s.replace(/(^|_)([^_])/g, (_, _prefix, letter) => (letter as string).toUpperCase());
 }

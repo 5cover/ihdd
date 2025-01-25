@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "type": "object",
+  "title": "data dictionary",
+  "propertyNames": {
+    "$ref": "#/definitions/identifier",
+    "description": "SQL schema name"
+  },
+  "additionalProperties": {
+    "type": "object",
+    "propertyNames": {
+      "$ref": "#/definitions/identifier"
+    },
+    "additionalProperties": {
+      "required": [
+        "kind",
+        "attrs"
+      ],
+      "properties": {
+        "kind": {
+          "oneOf": [
+            {
+              "enum": [
+                "abstract",
+                "class"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "assoc_left",
+                "assoc_right"
+              ],
+              "properties": {
+                "assoc_left": {
+                  "$ref": "#/definitions/identifier"
+                },
+                "assoc_right": {
+                  "$ref": "#/definitions/identifier"
+                }
+              }
+            }
+          ]
+        },
+        "inherits": {
+          "$ref": "#/definitions/identifier"
+        },
+        "description": {
+          "type": "string"
+        },
+        "references": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/definitions/identifier"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "qualifier": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "attrs": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/definitions/identifier"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "character[]",
+                  "date",
+                  "double ",
+                  "integer",
+                  "interval",
+                  "serial",
+                  "time",
+                  "timestamp",
+                  "decimal"
+                ]
+              },
+              "domain": {
+                "type": "string"
+              },
+              "constraints": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "remarks": {
+                "type": "string"
+              },
+              "is": {
+                "type": "array",
+                "uniqueItems": true,
+                "description": "Attribute personality traits",
+                "anyOf": [
+                  {
+                    "enum": [
+                      [
+                        "pk"
+                      ]
+                    ]
+                  },
+                  {
+                    "items": {
+                      "oneOf": [
+                        {
+                          "enum": [
+                            "required",
+                            "unique"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "default"
+                          ],
+                          "properties": {
+                            "default": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "items": {
+                      "oneOf": [
+                        {
+                          "enum": [
+                            "required"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "computed"
+                          ],
+                          "properties": {
+                            "default": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "pattern": "[a-z_][a-z_0-9]*"
+    }
+  }
+}

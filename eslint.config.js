@@ -1,6 +1,5 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import * as importPlugin from 'eslint-plugin-import';
 
 export default tseslint.config(
     eslint.configs.recommended,
@@ -12,7 +11,6 @@ export default tseslint.config(
             'webpack.config.js',
             '**/*.js'
         ],
-        extends: [importPlugin.flatConfigs?.recommended],
     },
     {
         languageOptions: {
