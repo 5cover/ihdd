@@ -18,32 +18,37 @@
       ],
       "properties": {
         "kind": {
-          "oneOf": [
-            {
-              "enum": [
-                "abstract",
-                "class"
-              ]
-            },
-            {
+          "type": "object",
+          "maxProperties": 1,
+          "additionalProperties": false,
+          "properties": {
+            "association": {
               "type": "object",
               "required": [
-                "assoc_left",
-                "assoc_right"
+                "left",
+                "right"
               ],
               "properties": {
-                "assoc_left": {
+                "left": {
                   "$ref": "#/definitions/identifier"
                 },
-                "assoc_right": {
+                "right": {
                   "$ref": "#/definitions/identifier"
                 }
               }
+            },
+            "class": {
+              "type": "object",
+              "properties": {
+                "inherits": {
+                  "$ref": "#/definitions/identifier"
+                },
+                "abstract": {
+                  "type": "boolean"
+                }
+              }
             }
-          ]
-        },
-        "inherits": {
-          "$ref": "#/definitions/identifier"
+          }
         },
         "description": {
           "type": "string"

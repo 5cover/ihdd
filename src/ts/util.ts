@@ -8,10 +8,6 @@ export function requireElementById(id: string) {
     return el;
 }
 
-export function textCell(value: string, style?: object) {
-    return { v: value, t: 's', s: style };
-}
-
 export function pascalize(s: string) {
     // Converts from snake_case to PascalCase
     // - Replace the first non-underscore character by its uppercase version.

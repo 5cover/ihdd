@@ -1,80 +1,35 @@
 {
   "pact": {
     "adresse": {
-      "kind": "class",
+      "kind": { "class": {} },
       "attrs": {
-        "name": {
-          "type": "serial",
-          "is": [
-            "pk"
-          ]
-        },
+        "name": { "type": "serial", "is": ["pk"] },
         "numero_voie": {
           "type": "integer",
           "description": "Numéro dans la voie",
           "domain": "[0;∞]",
-          "constraints": [
-            "Existe si complement_numero existe"
-          ]
+          "constraints": ["Existe si complement_numero existe"]
         },
         "complement_numero": {
           "type": "character[]",
           "description": "Complément au numéro dans la voie (B, T, Q, C)",
-          "constraints": [
-            "Longueur ≤ 10"
-          ]
+          "constraints": ["Longueur ≤ 10"]
         },
-        "nom_voie": {
-          "type": "character[]",
-          "description": "Nom de la voie"
-        },
-        "localite": {
-          "type": "character[]",
-          "description": "Hameau, lieu-dit... Chaîne vide pour aucun."
-        },
-        "code_postal": {
-          "type": "character[]",
-          "description": "Code postal",
-          "constraints": [
-            "Longueur = 5"
-          ]
-        },
-        "precision_int": {
-          "type": "character[]",
-          "description": "Précision interne (apt., Boîte à lettre, étage...)"
-        },
-        "precision_ext": {
-          "type": "character[]",
-          "description": "Précision externe (bâtiment, voie, résidence...)"
-        },
-        "lat": {
-          "type": "decimal",
-          "description": "Latitude décimale",
-          "constraints": [
-            "Existe avec long"
-          ]
-        },
-        "long": {
-          "type": "decimal",
-          "description": "Longitude décimale",
-          "constraints": [
-            "Existe avec lat"
-          ]
-        }
+        "nom_voie": {"type": "character[]", "description": "Nom de la voie"},
+        "localite": {"type": "character[]", "description": "Hameau, lieu-dit... Chaîne vide pour aucun."},
+        "code_postal": { "type": "character[]", "description": "Code postal", "constraints": ["Longueur = 5"] },
+        "precision_int": {"type": "character[]", "description": "Précision interne (apt., Boîte à lettre, étage...)"},
+        "precision_ext": {"type": "character[]", "description": "Précision externe (bâtiment, voie, résidence...)"},
+        "lat": { "type": "decimal", "description": "Latitude décimale", "constraints": ["Existe avec long"] },
+        "long": { "type": "decimal", "description": "Longitude décimale", "constraints": ["Existe avec lat"] }
       },
       "references": {
-        "commune": {
-          "description": "Commune où se trouve l'adresse"
-        },
-        "offre": {
-          "description": "Offre située à cette adresse"
-        },
-        "compte": {
-          "description": "Compte situé à cette adresse"
-        }
+        "commune": {"description": "Commune où se trouve l'adresse"},
+        "offre"  : {"description": "Offre située à cette adresse"  },
+        "compte" : {"description": "Compte situé à cette adresse"  }
       },
       "description": "Adresse postale normalisée (AFNOR NF Z 10-011)."
     }
-  },  
+  },
   "tchattator": {}
 }

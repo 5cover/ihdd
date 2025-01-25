@@ -1,5 +1,6 @@
-import { requireElementById, textCell, pascalize } from "./util";
-import * as style from "./style";
+import * as XLSX from "xlsx-js-style";
+import { requireElementById, pascalize } from "./util";
+import { stubCell, style, textCell } from "./style";
 
 const inputFile = requireElementById('input-file') as HTMLInputElement;
 const pInputError = requireElementById('p-input-error') as HTMLParagraphElement;
@@ -18,71 +19,80 @@ inputFile.addEventListener('change', () => void (async () => {
     buttonGenerate.disabled = false;
 })());
 
-buttonGenerate.addEventListener('click', () => void (async () => {
-    const XLSX = await importXLSX();
+interface Column {
+    name: string,
+    desc?: string,
+};
 
+const attributeTableColumns: Column[] = [
+    { name: 'Nom' },
+    { name: 'Description' },
+    { name: 'Type' },
+    { name: 'Nature', desc: 'Elémentaire ou déduite/calculée' },
+    { name: 'Domaine' },
+    { name: 'Valeur défaut', desc: 'Liste des valeurs ou intervalle' },
+    { name: 'Obligatoire' },
+    { name: 'Contraintes/règles de calcul', desc: 'Exemples : {dateExp > dateCom}/prixTTC = prixHT * TVA' },
+    { name: 'Remarques' },
+];
+
+buttonGenerate.addEventListener('click', () => {
     const wb = XLSX.utils.book_new();
 
-    if (!validateObject(dataDictionary)) return;
+    if (!isObject(dataDictionary)) throwError();
+
     for (const [inSchemaName, schema] of Object.entries(dataDictionary)) {
+        if (!isObject(schema)) throwError();
+
         const schemaName = pascalize(inSchemaName);
-        if (!validateObject(schema)) return;
         for (const [inEntityName, entity] of Object.entries(schema)) {
+            if (!isObject(entity) || !('kind' in entity)) throwError();
+
             const entityName = pascalize(inEntityName);
             const fullName = `${schemaName}.${entityName}`;
-            if (!validateObject(entity)) return;
             const data = [
                 [textCell('Dictionnaire des Données', style.h1)],
-                [textCell(fullName, style.h2)]];
+                [textCell(fullName, style.h2)],
+                [textCell(nameKind(entity.kind), style.kind)],
+                attributeTableColumns.map(c => textCell(c.name, style.th)),
+                attributeTableColumns.map(c => c.desc ? textCell(c.desc, style.thDesc) : stubCell),
+            ];
             const ws = XLSX.utils.aoa_to_sheet(data, { WTF: true });
             XLSX.utils.book_append_sheet(wb, ws, fullName);
         }
     }
 
     XLSX.writeFile(wb, 'data dictionary.xlsx');
-})());
+});
 
-/*buttonMagic.addEventListener("click", () => {
-    // STEP 1: Create a new workbook
-    const wb = XLSX.utils.book_new();
-
-    // STEP 2: Create data rows and styles
-    const row = [
-        { v: "Courier: 24", t: "s", s: { font: { name: "Courier", sz: 24 } } },
-        { v: "bold & color", t: "s", s: { font: { bold: true, color: { rgb: "FF0000" } } } },
-        { v: "fill: color", t: "s", s: { fill: { fgColor: { rgb: "E9E9E9" } } } },
-        { v: "line\nbreak", t: "s", s: { alignment: { wrapText: true } } },
-    ];
-
-    // STEP 3: Create worksheet with rows; Add worksheet to workbook
-    const ws = XLSX.utils.aoa_to_sheet([row]);
-    XLSX.utils.book_append_sheet(wb, ws, "Styled Sheet");
-
-    // STEP 4: Write Excel file to browser
-    XLSX.writeFile(wb, "StyledExcel.xlsx");
-});*/
-
-function setError(msg: string) {
-    pInputError.textContent = `invalid data dictionary (${msg})`;
+function nameKind(kind: unknown) {
+    if (!isObject(kind)) throwError();
+    const [k, v] = Object.entries(kind)[0] as [string, unknown] ?? throwError();
+    if (!isObject(v)) throwError();
+    switch (k) {
+        case 'association': {
+            const left = 'left' in v && isIdentifier(v.left) ? v.left : throwError();
+            const right = 'right' in v && isIdentifier(v.right) ? v.right : throwError();
+            return `Classe d'association entre ${left} et ${right}`;
+        } case 'class':
+            return 'Classe'
+                + ('abstract' in v && v.abstract ? ' abstraite' : '')
+                + ('inherits' in v ? isString(v.inherits) ? ' enfant de ' + v.inherits : throwError() : '');
+        default:
+            throwError();
+    }
 }
 
-function validateObject(x: unknown): x is object {
-    if (x === null) {
-        setError('expected object, got null');
-        return false;
-    }
-    if (typeof x !== 'object') {
-        setError(`expected object, got ${typeof x}`);
-        return false;
-    }
-    return true;
+function throwError(): never {
+    throw new Error(pInputError.textContent = `invalid data dictionary: see schema for details`);
 }
 
-type XLSX = typeof import('xlsx-js-style');
-let _xlsx: XLSX | null = null;
-async function importXLSX(): Promise<XLSX> {
-    return (_xlsx ??= await import('xlsx-js-style').then(xlsx => {
-        requireElementById('span-sheet-js-version').textContent = xlsx.version;
-        return xlsx.default;
-    })) as XLSX;
+function isObject(x: unknown): x is object {
+    return x !== null && typeof x === 'object';
+}
+
+const isIdentifier = isString;
+
+function isString(x: unknown): x is string {
+    return typeof x === 'string';
 }
