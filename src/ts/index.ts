@@ -3,9 +3,6 @@ import { requireElementById, pascalize, isIdentifier, isObject, isString, isBool
 import { emptyCell, style, sheet_styleRowsAndColumns, textCell, sheetLinkCell } from "./style";
 import { EXAMPLE_FILE_URL, attributeTableColumns, referencesTableColumns } from "./const";
 
-// todo: hyperlinks
-// - in inherits
-
 // Element retrievals
 // If an element is only used once, it is acceptable not to put in a constant if it is retrieved immediately (so we get an error immediately if the id is not found)
 
