@@ -8,15 +8,63 @@
     box-sizing: border-box;
 }
 
+button, input {
+    font-size: .85em;
+    padding: .2em .4em;
+}
+
+details {
+    margin: 1em 0;
+}
+
 header ul {
     list-style: none;
     padding: 0;
 }
 
-.error {
-    color: red;
+pre,
+code {
+    background-color: #ebebeb;
+    border-radius: .4em;
+    padding: 1em;
 }
 
 code {
-    background-color: #ddd;
+    padding: .2em;
+    font-family: 'Cascadia Code', monospace;
+}
+
+pre code {
+    padding: initial;
+}
+
+button:not(:disabled),
+summary,
+input[type=file] {
+    cursor: pointer;
+}
+
+details {
+    $padding: .5em;
+    border-radius: $padding;
+    padding: $padding * 2;
+
+    &[open] {
+        background-color: #f8f8f8;
+    }
+
+    summary {
+        border-radius: $padding;
+        margin-top: -$padding * 2;
+        margin-left: -$padding * 2;
+        padding: $padding;
+        min-width: max(15em, 25%);
+        max-width: fit-content;
+        background-color: #ebebeb;
+        border: 1px solid #ccc;
+    }
+}
+
+.error {
+    color: red;
 }

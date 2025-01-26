@@ -105,7 +105,6 @@
               },
               "constraints": {
                 "type": "array",
-                "uniqueItems": true,
                 "items": {
                   "type": "string"
                 }
@@ -117,7 +116,7 @@
                 "type": "array",
                 "uniqueItems": true,
                 "description": "Attribute personality traits",
-                "anyOf": [
+                "oneOf": [
                   {
                     "enum": [
                       [
@@ -129,21 +128,13 @@
                     "items": {
                       "oneOf": [
                         {
+                          "$ref": "#/definitions/default"
+                        },
+                        {
                           "enum": [
                             "required",
                             "unique"
                           ]
-                        },
-                        {
-                          "type": "object",
-                          "required": [
-                            "default"
-                          ],
-                          "properties": {
-                            "default": {
-                              "type": "string"
-                            }
-                          }
                         }
                       ]
                     }
@@ -157,17 +148,12 @@
                           ]
                         },
                         {
-                          "type": "object",
-                          "required": [
-                            "computed"
-                          ],
-                          "properties": {
-                            "default": {
-                              "type": "string"
-                            }
-                          }
+                          "$ref": "#/definitions/computed"
                         }
                       ]
+                    },
+                    "contains": {
+                      "$ref": "#/definitions/computed"
                     }
                   }
                 ]
@@ -182,6 +168,28 @@
     "identifier": {
       "type": "string",
       "pattern": "[a-z_][a-z_0-9]*"
+    },
+    "computed": {
+      "type": "object",
+      "required": [
+        "computed"
+      ],
+      "properties": {
+        "computed": {
+          "type": "string"
+        }
+      }
+    },
+    "default": {
+      "type": "object",
+      "required": [
+        "default"
+      ],
+      "properties": {
+        "default": {
+          "type": "string"
+        }
+      }
     }
   }
 }

@@ -29,7 +29,8 @@ export interface Style {
 
 export const style = {
     h1: { font: { name: fontName, sz: fontSize + 5, bold: true } },
-    h2: { font: { name: fontName, sz: fontSize + 2, bold: true } },
+    fullName: { font: { name: fontName, sz: fontSize + 2, bold: true } },
+    fullNameAbstract: { font: { name: fontName, sz: fontSize + 2, bold: true, italic: true } },
     kind: { font: { name: fontName, sz: fontSize + 2 } },
     h3: { font: { name: fontName, sz: fontSize, bold: true } },
     th: {
@@ -41,6 +42,8 @@ export const style = {
         fill: { fgColor: { rgb: 'b4c7e7' } }, border: cellRectThickBottom,
         alignment: { wrapText: true, vertical: 'top' }
     },
+    td: { font: { name: fontName, sz: fontSize }, border: cellRect },
+    abstract: { font: { name: fontName, sz: fontSize, italic: true } }
 } satisfies Record<string, Style>;
 const styleRegular = { font: { name: fontName, sz: fontSize } };
 
@@ -49,7 +52,7 @@ export function textCell(value: string, style?: object): XLSX.CellObject {
 }
 
 export function emptyCell(style?: object): XLSX.CellObject {
-    return { 't': 's', s: style ?? styleRegular };
+    return { v: '', t: 's', s: style ?? styleRegular };
 }
 
 export function sheet_styleRowsAndColumns(ws: XLSX.WorkSheet) {
