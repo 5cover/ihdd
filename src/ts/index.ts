@@ -70,7 +70,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
             if (!isObject(schema)) throwError();
 
             const schemaName = pascalize(inSchemaName);
-            for (const [inEntityName, entity] of Object.entries(schema)) {
+            for (const [inEntityName, entity] of Object.entries(schema).sort(([a,], [b,]) => a.localeCompare(b))) {
                 if (!isObject(entity)) throwError();
 
                 const entityName = pascalize(inEntityName);

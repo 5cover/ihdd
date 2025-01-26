@@ -10,6 +10,11 @@ $page->put(function () {
 
 <h2>Generate a data dictionary</h2>
 <p><label>JSON dictionary: <input type="file" id="input-file" accept=".json,application/json"></label> <button type="button" id="button-clear-file" disabled>Clear</button></p>
+<p>Sort:
+<label><input type="checkbox" readonly> schemas</label>
+<label><input type="checkbox" readonly checked> relations</label>
+<label><input type="checkbox" readonly> attributes</label>
+</p>
 <button type="button" id="button-generate" disabled>Generate data dictionary</button>
 <p id="p-error" class="error"></p>
 <details>
