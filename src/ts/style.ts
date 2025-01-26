@@ -56,7 +56,6 @@ export function emptyCell(style?: object): XLSX.CellObject {
 }
 
 export function sheet_styleRowsAndColumns(ws: XLSX.WorkSheet) {
-    debugger;
     const ref = decodeRef(ws);
     if (ref === null) return;
 
