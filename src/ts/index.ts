@@ -88,7 +88,9 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                         const is = value(attr, 'is', isArray) ?? [];
                         const computedBy = isComputed(is);
                         const constraints = value(attr, 'constraints', isArray)?.join('\n') ?? '';
-                        const remarks = value(attr, 'remarks', isString);
+                        const remarks = [value(attr, 'remarks', isString)];
+                        if (is.includes('pk')) remarks.push('Clé primaire');
+                        if (is.includes('unique')) remarks.push('Unqiue');
                         return [
                             textCell(attrName, style.td),
                             textCell(value(attr, 'description', isString) ?? '', style.td),
@@ -96,9 +98,9 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                             textCell(computedBy ? 'Déduite/calculée' : 'Élémentaire', style.td),
                             textCell(value(attr, 'domain', isString) ?? '', style.td),
                             textCell(isDefaultValue(is) ?? '', style.td),
-                            textCell(isRequired(is) ? 'Oui' : 'Non', style.td),
+                            textCell(is.includes('required') || is.includes('pk') ? 'Oui' : 'Non', style.td),
                             textCell(computedBy ? computedBy + '\n' + constraints : constraints, style.td),
-                            textCell((remarks ? remarks + '\n' : '') + isRemarks(is).join('\n'), style.td),
+                            textCell(remarks.join('\n'), style.td),
                         ];
                     }),
                 ];
@@ -211,17 +213,6 @@ function isDefaultValue(is: unknown[]): string | undefined {
         if (v) return v;
     }
     return undefined;
-}
-
-function isRequired(is: unknown[]) {
-    return is.includes('required');
-}
-
-function isRemarks(is: unknown[]) {
-    const r = [];
-    if (is.includes('pk')) r.push('Clé primaire');
-    if (is.includes('unique')) r.push('Unqiue');
-    return r;
 }
 
 function value<K extends string, V>(obj: object, key: K, guard: (v: unknown) => v is V): V | undefined {
