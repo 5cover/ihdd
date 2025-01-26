@@ -14,9 +14,13 @@ const buttonGenerate = requireElementById('button-generate') as HTMLButtonElemen
 const pError = requireElementById('p-error') as HTMLParagraphElement;
 const inputTextToPascalize = requireElementById('input-text-to-pascalize') as HTMLInputElement;
 const inputPascalizedText = requireElementById('input-pascalized-text') as HTMLInputElement;
-// Event listeners
+
+// Initial state
 
 updateButtonGenerateDisabled();
+
+// Event listeners
+
 
 window.addEventListener('error', e => {
     pError.textContent ??= e.message;
@@ -68,6 +72,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
             const schemaName = pascalize(inSchemaName);
             for (const [inEntityName, entity] of Object.entries(schema)) {
                 if (!isObject(entity)) throwError();
+
                 const entityName = pascalize(inEntityName);
                 const fullName = `${schemaName}.${entityName}`;
                 const kind = kindDecode(value(entity, 'kind', isObject) ?? throwError());
@@ -108,7 +113,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                 }
 
                 const refs = Object.entries(value(entity, 'references', isObject) ?? {});
-                if (refs) {
+                if (refs.length > 0) {
                     data.push(
                         [],
                         [textCell('Navigation', style.h3)],
@@ -117,7 +122,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                         ...refs.map(([refName, ref]) => {
                             if (!isObject(ref)) throwError();
                             return [
-                                textCell(refName),
+                                textCell(pascalize(refName)),
                                 textCell(value(ref, 'description', isString) ?? ''),
                                 textCell(value(ref, 'name', isString) ?? ''),
                                 textCell(value(ref, 'qualifier', isString) ?? ''),
@@ -160,7 +165,7 @@ async function getDataDictionary(): Promise<string> {
     if (f) {
         return await f.text();
     }
-    throwError("");
+    throwError('no data');
 }
 
 function kindDecode(kind: object): {

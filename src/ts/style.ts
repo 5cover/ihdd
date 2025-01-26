@@ -56,21 +56,27 @@ export function emptyCell(style?: object): XLSX.CellObject {
 }
 
 export function sheet_styleRowsAndColumns(ws: XLSX.WorkSheet) {
+    debugger;
     const ref = decodeRef(ws);
     if (ref === null) return;
 
     const pos = { r: 0, c: 0 };
 
     ws['!rows'] = [];
-    for (pos.r = ref.s.r; pos.r < ref.e.r; ++pos.r) {
+
+    rows: for (pos.r = ref.s.r; pos.r < ref.e.r; ++pos.r) {
         let maxFontSize = styleRegular.font.sz;
         let maxLineCount = 1;
         let rowContainsWrapTextCell = false;
 
         for (pos.c = ref.s.c; pos.c <= ref.e.c; ++pos.c) {
+            const merge = sheet_getMerge(ws, pos);
             // cell must not be part of > 1 row merge
-            const merge = sheet_getContainingMerge(ws, pos);
-            if (merge !== null && merge.s.r <= merge.e.r) continue;
+            if (merge !== null && merge.s.r < merge.e.r) {
+                // skip to end of merge
+                pos.r = merge.e.r;
+                continue rows;
+            }
 
             const cell = ws[XLSX.utils.encode_cell(pos)] as XLSX.CellObject | undefined;
             const style = cell?.s as Style | undefined;
@@ -91,12 +97,16 @@ export function sheet_styleRowsAndColumns(ws: XLSX.WorkSheet) {
     }
 
     ws['!cols'] = [];
-    for (pos.c = ref.s.c; pos.c <= ref.e.c; ++pos.c) {
+    cols: for (pos.c = ref.s.c; pos.c <= ref.e.c; ++pos.c) {
         let maxWidthMDW = 0;
         for (pos.r = ref.s.r; pos.r <= ref.e.r; ++pos.r) {
+            const merge = sheet_getMerge(ws, pos);
             // cell must not be part of > 1 column merge
-            const merge = sheet_getContainingMerge(ws, pos);
-            if (merge !== null && merge.s.c < merge.e.c) continue;
+            if (merge !== null && merge.s.c < merge.e.c) {
+                // skip to end of merge
+                pos.c = merge.e.c;
+                continue cols;
+            }
 
             const cell = ws[XLSX.utils.encode_cell(pos)] as XLSX.CellObject | undefined;
             const style = cell?.s as Style | undefined;
@@ -113,12 +123,9 @@ export function sheet_styleRowsAndColumns(ws: XLSX.WorkSheet) {
     }
 }
 
-function sheet_getContainingMerge(ws: XLSX.WorkSheet, pos: XLSX.CellAddress) {
+function sheet_getMerge(ws: XLSX.WorkSheet, pos: XLSX.CellAddress) {
     for (const merge of ws['!merges'] ?? []) {
-        if (merge.s.c <= pos.c && pos.c <= merge.e.c
-            && merge.s.r <= pos.r && pos.r <= merge.e.r) {
-            return merge;
-        }
+        if (pos === merge.s) return merge;
     }
     return null;
 }
