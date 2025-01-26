@@ -32,6 +32,7 @@ export const style = {
     fullName: { font: { name: fontName, sz: fontSize + 2, bold: true } },
     fullNameAbstract: { font: { name: fontName, sz: fontSize + 2, bold: true, italic: true } },
     kind: { font: { name: fontName, sz: fontSize + 2 } },
+    kindRight: { font: { name: fontName, sz: fontSize + 2 }, alignment: { horizontal: 'right' } },
     h3: { font: { name: fontName, sz: fontSize, bold: true } },
     th: {
         font: { name: fontName, sz: fontSize, bold: true, color: { rgb: 'ffffff' } },
@@ -43,16 +44,21 @@ export const style = {
         alignment: { wrapText: true, vertical: 'top' }
     },
     td: { font: { name: fontName, sz: fontSize }, border: cellRect },
-    abstract: { font: { name: fontName, sz: fontSize, italic: true } }
+    abstract: { font: { name: fontName, sz: fontSize, italic: true } },
+    description: { font: { name: fontName, sz: fontSize }, alignment: { vertical: 'center' } }
 } satisfies Record<string, Style>;
 const styleRegular = { font: { name: fontName, sz: fontSize } };
 
-export function textCell(value: string, style?: object): XLSX.CellObject {
+export function textCell(value: string, style?: Style): XLSX.CellObject {
     return { v: value, t: 's', s: style ?? styleRegular };
 }
 
-export function emptyCell(style?: object): XLSX.CellObject {
+export function emptyCell(style?: Style): XLSX.CellObject {
     return { v: '', t: 's', s: style ?? styleRegular };
+}
+
+export function sheetLinkCell(sheetName: string, style?: Style): XLSX.CellObject {
+    return { v: sheetName, t: 's', s: style ?? styleRegular, l: { Target: `#${sheetName}!A1`, Tooltip: `Lien vers la feuille ${sheetName}` } };
 }
 
 export function sheet_styleRowsAndColumns(ws: XLSX.WorkSheet) {
@@ -63,10 +69,8 @@ export function sheet_styleRowsAndColumns(ws: XLSX.WorkSheet) {
 
     ws['!rows'] = [];
 
-    rows: for (pos.r = ref.s.r; pos.r < ref.e.r; ++pos.r) {
-        let maxFontSize = styleRegular.font.sz;
-        let maxLineCount = 1;
-        let rowContainsWrapTextCell = false;
+    rows: for (pos.r = ref.s.r; pos.r <= ref.e.r; ++pos.r) {
+        let maxHeight = styleRegular.font.sz;
 
         for (pos.c = ref.s.c; pos.c <= ref.e.c; ++pos.c) {
             const merge = sheet_getMerge(ws, pos);
@@ -76,23 +80,17 @@ export function sheet_styleRowsAndColumns(ws: XLSX.WorkSheet) {
                 pos.r = merge.e.r;
                 continue rows;
             }
-
-            const cell = ws[XLSX.utils.encode_cell(pos)] as XLSX.CellObject | undefined;
+            const addr = XLSX.utils.encode_cell(pos);
+            const cell = ws[addr] as XLSX.CellObject | undefined;
             const style = cell?.s as Style | undefined;
 
-            if (style?.alignment?.wrapText) {
-                rowContainsWrapTextCell = true;
-                break;
-            }
+            // Do not consider the height of wrapText cells
+            //if (style?.alignment?.wrapText) continue;
 
-            const sz = style?.font.sz;
-            if (sz !== undefined && maxFontSize < sz) maxFontSize = sz;
-
-            const nlines = lineCount(cell?.v?.toString() ?? '');
-            if (maxLineCount < nlines) maxLineCount = nlines;
+            const height = (style ?? styleRegular).font.sz * lineCount(cell?.v?.toString() ?? '');
+            if (maxHeight < height) maxHeight = height;
         }
-        // Do not hardcode a width for rows containing wrapText cells.
-        ws['!rows'].push({ hpt: rowContainsWrapTextCell ? undefined : maxLineCount * maxFontSize * lineHeight });
+        ws['!rows'].push({ hpt: maxHeight * lineHeight });
     }
 
     ws['!cols'] = [];
@@ -133,7 +131,6 @@ function sheet_getMerge(ws: XLSX.WorkSheet, pos: XLSX.CellAddress) {
 function longestLineLength(s: string): number {
     let maxLineLen = 0;
     let lineLen = 0;
-    s = s.trim();
     for (let i = 0; i < s.length; ++i) {
         if (s[i] == '\n') {
             if (maxLineLen < lineLen) maxLineLen = lineLen;
@@ -147,7 +144,6 @@ function longestLineLength(s: string): number {
 
 function lineCount(s: string): number {
     let lineCount = 1;
-    s = s.trim();
     for (let i = 0; i < s.length; lineCount += +('\n' === s[i++]));
     return lineCount;
 }

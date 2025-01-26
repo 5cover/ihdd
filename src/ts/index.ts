@@ -1,10 +1,9 @@
 import * as XLSX from "xlsx-js-style";
 import { requireElementById, pascalize, isIdentifier, isObject, isString, isBool, isArray, isStringOrObject } from "./util";
-import { emptyCell, style, sheet_styleRowsAndColumns, textCell } from "./style";
+import { emptyCell, style, sheet_styleRowsAndColumns, textCell, sheetLinkCell } from "./style";
 import { EXAMPLE_FILE_URL, attributeTableColumns, referencesTableColumns } from "./const";
 
 // todo: hyperlinks
-// - in references
 // - in inherits
 
 // Element retrievals
@@ -84,44 +83,53 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                 const data = [
                     [textCell('Dictionnaire des Données', style.h1)],
                     [textCell(fullName, kind.abstract ? style.fullName : style.fullNameAbstract)],
-                    [textCell(kind.name, style.kind)],
+                    [textCell(kind.name, style.kind), ...(kind.inherits ? [textCell('Hérite de', style.kindRight), sheetLinkCell(pascalize(kind.inherits), style.kind)] : [])],
                     attributeTableColumns.map(c => textCell(c.name, style.th)),
                     attributeTableColumns.map(c => c.desc ? textCell(c.desc, style.thDesc) : emptyCell(style.thDesc)),
                     ...Object.entries(value(relation, 'attrs', isObject) ?? throwError())
-                    .sort(([,attrA], [,attrB]) => {
-                        if (!isObject(attrA) || !isObject(attrB)) throwError();
-                        const isA = value(attrA, 'is', isArray) ?? [];
-                        const isB = value(attrB, 'is', isArray) ?? [];
-                        return +isRequired(isB) - +isRequired(isA);
-                    })
-                    .map(([attrName, attr]) => {
-                        if (!isObject(attr)) throwError();
-                        const is = value(attr, 'is', isArray) ?? [];
-                        const computedBy = isComputed(is);
-                        const constraints = value(attr, 'constraints', isArray)?.join('\n') ?? '';
-                        const remarks = [value(attr, 'remarks', isString)];
-                        if (is.includes('pk')) remarks.push('Clé primaire');
-                        if (is.includes('unique')) remarks.push('Unqiue');
-                        return [
-                            textCell(attrName, style.td),
-                            textCell(value(attr, 'description', isString) ?? '', style.td),
-                            textCell(value(attr, 'type', isString) ?? throwError(), style.td),
-                            textCell(computedBy ? 'Déduite/calculée' : 'Élémentaire', style.td),
-                            textCell(decodeDomain(value(attr, 'domain', isStringOrObject) ?? ''), style.td),
-                            textCell(isDefaultValue(is) ?? '', style.td),
-                            textCell(isRequired(is) ? 'Oui' : 'Non', style.td),
-                            textCell(computedBy ? computedBy + '\n' + constraints : constraints, style.td),
-                            textCell(remarks.join('\n'), style.td),
-                        ];
-                    }),
+                        .sort(([, attrA], [, attrB]) => {
+                            if (!isObject(attrA) || !isObject(attrB)) throwError();
+                            const isA = value(attrA, 'is', isArray) ?? [];
+                            const isB = value(attrB, 'is', isArray) ?? [];
+                            return +isRequired(isB) - +isRequired(isA);
+                        })
+                        .map(([attrName, attr]) => {
+                            if (!isObject(attr)) throwError();
+                            const is = value(attr, 'is', isArray) ?? [];
+                            const computedBy = isComputed(is);
+                            const constraints = value(attr, 'constraints', isArray)?.join('\n') ?? '';
+                            const remarks = [value(attr, 'remarks', isString)];
+                            if (is.includes('pk')) remarks.push('Clé primaire');
+                            if (is.includes('unique')) remarks.push('Unqiue');
+                            return [
+                                textCell(attrName, style.td),
+                                textCell(value(attr, 'description', isString) ?? '', style.td),
+                                textCell(value(attr, 'type', isString) ?? throwError(), style.td),
+                                textCell(computedBy ? 'Déduite/calculée' : 'Élémentaire', style.td),
+                                textCell(decodeDomain(value(attr, 'domain', isStringOrObject) ?? ''), style.td),
+                                textCell(isDefaultValue(is) ?? '', style.td),
+                                textCell(isRequired(is) ? 'Oui' : 'Non', style.td),
+                                textCell(computedBy ? computedBy + '\n' + constraints : constraints, style.td),
+                                textCell(remarks.join('\n'), style.td),
+                            ];
+                        }),
                 ];
+                const merges: XLSX.Range[] = [
+                    { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },
+                    { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } },
+                    { s: { r: 2, c: 2 }, e: { r: 2, c: 8 } },
+                ];
+
 
                 const desc = value(relation, 'description', isString);
                 if (desc) {
                     data.push(
                         [],
                         [textCell('Description', style.h3)],
-                        [textCell(desc)],
+                        [textCell(desc, style.description)],
+                    );
+                    merges.push(
+                        { s: { r: data.length - 1, c: 0 }, e: { r: data.length - 1, c: 8 } }
                     );
                 }
 
@@ -133,24 +141,20 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                         [textCell('Navigation', style.h3)],
                         referencesTableColumns.map(c => textCell(c.name, style.th)),
                         referencesTableColumns.map(c => c.desc ? textCell(c.desc, style.thDesc) : emptyCell(style.thDesc)),
-                        ...refs.map(([refName, ref]) => {
+                        ...refs.map(([inRefName, ref]) => {
                             if (!isObject(ref)) throwError();
                             return [
-                                textCell(pascalize(refName)),
-                                textCell(value(ref, 'description', isString) ?? ''),
-                                textCell(value(ref, 'name', isString) ?? ''), // todo: have some way to signal that this is a link
-                                textCell(value(ref, 'qualifier', isString) ?? ''),
+                                sheetLinkCell(pascalize(inRefName), style.td),
+                                textCell(value(ref, 'description', isString) ?? '', style.td),
+                                textCell(value(ref, 'name', isString) ?? '', style.td), // todo: have some way to signal that this is a link
+                                textCell(value(ref, 'qualifier', isString) ?? '', style.td),
                             ];
                         }),
                     );
                 }
 
                 const ws = XLSX.utils.aoa_to_sheet(data, { WTF: true });
-                ws['!merges'] = [
-                    { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },
-                    { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } },
-                    { s: { r: 2, c: 0 }, e: { r: 2, c: 8 } },
-                ];
+                ws['!merges'] = merges;
                 sheet_styleRowsAndColumns(ws);
                 XLSX.utils.book_append_sheet(wb, ws, fullName);
             }
@@ -185,6 +189,7 @@ async function getDataDictionary(): Promise<string> {
 function decodeKind(kind: object): {
     abstract: boolean,
     name: string,
+    inherits?: string;
 } {
     const [k, v] = Object.entries(kind)[0] as [string, unknown] ?? throwError();
     if (!isObject(v)) throwError();
@@ -195,13 +200,11 @@ function decodeKind(kind: object): {
                 name: `Classe d'association entre ${value(v, 'left', isIdentifier) ?? throwError()} et ${value(v, 'right', isIdentifier) ?? throwError()}`
             };
         } case 'class': {
-            const inherits = value(v, 'inherits', isString);
             const abstract = value(v, 'abstract', isBool) ?? false;
             return {
                 abstract,
-                name: 'Classe'
-                    + (abstract ? ' abstraite' : '')
-                    + (inherits ? ' enfant de ' + inherits : '')
+                name: 'Classe' + (abstract ? ' abstraite' : ''),
+                inherits: value(v, 'inherits', isString),
             };
         }
         default:
