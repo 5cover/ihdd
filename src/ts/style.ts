@@ -133,6 +133,7 @@ function sheet_getMerge(ws: XLSX.WorkSheet, pos: XLSX.CellAddress) {
 function longestLineLength(s: string): number {
     let maxLineLen = 0;
     let lineLen = 0;
+    s = s.trim();
     for (let i = 0; i < s.length; ++i) {
         if (s[i] == '\n') {
             if (maxLineLen < lineLen) maxLineLen = lineLen;
@@ -146,6 +147,7 @@ function longestLineLength(s: string): number {
 
 function lineCount(s: string): number {
     let lineCount = 1;
+    s = s.trim();
     for (let i = 0; i < s.length; lineCount += +('\n' === s[i++]));
     return lineCount;
 }

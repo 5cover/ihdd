@@ -1,7 +1,13 @@
 import * as XLSX from "xlsx-js-style";
-import { requireElementById, pascalize, isIdentifier, isObject, isString, isTrue, isArray } from "./util";
+import { requireElementById, pascalize, isIdentifier, isObject, isString, isBool, isArray, isStringOrObject } from "./util";
 import { emptyCell, style, sheet_styleRowsAndColumns, textCell } from "./style";
 import { EXAMPLE_FILE_URL, attributeTableColumns, referencesTableColumns } from "./const";
+
+// todo: hyperlinks
+// - in references
+// - in inherits
+
+// todo: sort attributes by required first
 
 // Element retrievals
 // If an element is only used once, it is acceptable not to put in a constant if it is retrieved immediately (so we get an error immediately if the id is not found)
@@ -70,12 +76,12 @@ buttonGenerate.addEventListener('click', () => void (async () => {
             if (!isObject(schema)) throwError();
 
             const schemaName = pascalize(inSchemaName);
-            for (const [inEntityName, entity] of Object.entries(schema).sort(([a,], [b,]) => a.localeCompare(b))) {
-                if (!isObject(entity)) throwError();
+            for (const [inRelationName, relation] of Object.entries(schema).sort(([a,], [b,]) => a.localeCompare(b))) {
+                if (!isObject(relation)) throwError();
 
-                const entityName = pascalize(inEntityName);
-                const fullName = `${schemaName}.${entityName}`;
-                const kind = kindDecode(value(entity, 'kind', isObject) ?? throwError());
+                const relationName = pascalize(inRelationName);
+                const fullName = `${schemaName}.${relationName}`;
+                const kind = decodeKind(value(relation, 'kind', isObject) ?? throwError());
 
                 const data = [
                     [textCell('Dictionnaire des Données', style.h1)],
@@ -83,7 +89,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                     [textCell(kind.name, style.kind)],
                     attributeTableColumns.map(c => textCell(c.name, style.th)),
                     attributeTableColumns.map(c => c.desc ? textCell(c.desc, style.thDesc) : emptyCell(style.thDesc)),
-                    ...Object.entries(value(entity, 'attrs', isObject) ?? throwError()).map(([attrName, attr]) => {
+                    ...Object.entries(value(relation, 'attrs', isObject) ?? throwError()).map(([attrName, attr]) => {
                         if (!isObject(attr)) throwError();
                         const is = value(attr, 'is', isArray) ?? [];
                         const computedBy = isComputed(is);
@@ -96,7 +102,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                             textCell(value(attr, 'description', isString) ?? '', style.td),
                             textCell(value(attr, 'type', isString) ?? throwError(), style.td),
                             textCell(computedBy ? 'Déduite/calculée' : 'Élémentaire', style.td),
-                            textCell(value(attr, 'domain', isString) ?? '', style.td),
+                            textCell(decodeDomain(value(attr, 'domain', isStringOrObject) ?? ''), style.td),
                             textCell(isDefaultValue(is) ?? '', style.td),
                             textCell(is.includes('required') || is.includes('pk') ? 'Oui' : 'Non', style.td),
                             textCell(computedBy ? computedBy + '\n' + constraints : constraints, style.td),
@@ -105,7 +111,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                     }),
                 ];
 
-                const desc = value(entity, 'description', isString);
+                const desc = value(relation, 'description', isString);
                 if (desc) {
                     data.push(
                         [],
@@ -114,7 +120,8 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                     );
                 }
 
-                const refs = Object.entries(value(entity, 'references', isObject) ?? {});
+                const refs = Object.entries(value(relation, 'references', isObject) ?? {});
+                // todo.. union opposite references (all relations that reference this one)
                 if (refs.length > 0) {
                     data.push(
                         [],
@@ -126,7 +133,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                             return [
                                 textCell(pascalize(refName)),
                                 textCell(value(ref, 'description', isString) ?? ''),
-                                textCell(value(ref, 'name', isString) ?? ''),
+                                textCell(value(ref, 'name', isString) ?? ''), // todo: have some way to signal that this is a link
                                 textCell(value(ref, 'qualifier', isString) ?? ''),
                             ];
                         }),
@@ -170,7 +177,7 @@ async function getDataDictionary(): Promise<string> {
     throwError('no data');
 }
 
-function kindDecode(kind: object): {
+function decodeKind(kind: object): {
     abstract: boolean,
     name: string,
 } {
@@ -184,7 +191,7 @@ function kindDecode(kind: object): {
             };
         } case 'class': {
             const inherits = value(v, 'inherits', isString);
-            const abstract = value(v, 'abstract', isTrue) ?? false;
+            const abstract = value(v, 'abstract', isBool) ?? false;
             return {
                 abstract,
                 name: 'Classe'
@@ -195,6 +202,16 @@ function kindDecode(kind: object): {
         default:
             throwError();
     }
+}
+
+function decodeDomain(domain: string | object) {
+    if (typeof domain === 'string') return domain;
+    const inf = '\u221E';
+    const minIncl = value(domain, 'min_incl', isBool) ? '[' : ']',
+        min = value(domain, 'min', isString) ?? inf,
+        max = value(domain, 'max', isString) ?? inf,
+        maxIncl = value(domain, 'max_incl', isBool) ? ']' : '[';
+    return minIncl + min + ';' + max + maxIncl;
 }
 
 function isComputed(is: unknown[]): string | undefined {

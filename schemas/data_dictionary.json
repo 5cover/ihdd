@@ -97,11 +97,26 @@
                   "serial",
                   "time",
                   "timestamp",
-                  "decimal"
+                  "decimal",
+                  "boolean"
                 ]
               },
               "domain": {
-                "type": "string"
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "minProperties": 1,
+                    "properties": {
+                      "min_incl": {"type":"boolean"},
+                      "min": {"type": "string"},
+                      "max": {"type": "string"},
+                      "max_incl": {"type":"boolean"}
+                    }
+                  }
+                ]
               },
               "constraints": {
                 "type": "array",

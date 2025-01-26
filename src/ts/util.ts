@@ -25,8 +25,12 @@ export function isString(x: unknown): x is string {
     return typeof x === 'string';
 }
 
-export function isTrue(x: unknown): x is true {
-    return typeof x === 'boolean' && x;
+export function isStringOrObject(x: unknown): x is string | object {
+    return typeof x === 'string' || typeof x === 'object';
+}
+
+export function isBool(x: unknown): x is boolean {
+    return typeof x === 'boolean';
 }
 
 export function isArray(x: unknown): x is unknown[] {
