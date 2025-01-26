@@ -7,8 +7,6 @@ import { EXAMPLE_FILE_URL, attributeTableColumns, referencesTableColumns } from 
 // - in references
 // - in inherits
 
-// todo: sort attributes by required first
-
 // Element retrievals
 // If an element is only used once, it is acceptable not to put in a constant if it is retrieved immediately (so we get an error immediately if the id is not found)
 
@@ -89,7 +87,14 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                     [textCell(kind.name, style.kind)],
                     attributeTableColumns.map(c => textCell(c.name, style.th)),
                     attributeTableColumns.map(c => c.desc ? textCell(c.desc, style.thDesc) : emptyCell(style.thDesc)),
-                    ...Object.entries(value(relation, 'attrs', isObject) ?? throwError()).map(([attrName, attr]) => {
+                    ...Object.entries(value(relation, 'attrs', isObject) ?? throwError())
+                    .sort(([,attrA], [,attrB]) => {
+                        if (!isObject(attrA) || !isObject(attrB)) throwError();
+                        const isA = value(attrA, 'is', isArray) ?? [];
+                        const isB = value(attrB, 'is', isArray) ?? [];
+                        return +isRequired(isB) - +isRequired(isA);
+                    })
+                    .map(([attrName, attr]) => {
                         if (!isObject(attr)) throwError();
                         const is = value(attr, 'is', isArray) ?? [];
                         const computedBy = isComputed(is);
@@ -104,7 +109,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                             textCell(computedBy ? 'Déduite/calculée' : 'Élémentaire', style.td),
                             textCell(decodeDomain(value(attr, 'domain', isStringOrObject) ?? ''), style.td),
                             textCell(isDefaultValue(is) ?? '', style.td),
-                            textCell(is.includes('required') || is.includes('pk') ? 'Oui' : 'Non', style.td),
+                            textCell(isRequired(is) ? 'Oui' : 'Non', style.td),
                             textCell(computedBy ? computedBy + '\n' + constraints : constraints, style.td),
                             textCell(remarks.join('\n'), style.td),
                         ];
@@ -212,6 +217,10 @@ function decodeDomain(domain: string | object) {
         max = value(domain, 'max', isString) ?? inf,
         maxIncl = value(domain, 'max_incl', isBool) ? ']' : '[';
     return minIncl + min + ';' + max + maxIncl;
+}
+
+function isRequired(is: unknown[]) {
+    return is.includes('required') || is.includes('pk');
 }
 
 function isComputed(is: unknown[]): string | undefined {
