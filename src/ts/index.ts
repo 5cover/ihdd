@@ -79,13 +79,14 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                 if (!isObject(relation)) throwError();
 
                 const relationName = pascalize(inRelationName);
-                const fullName = `${schemaName}.${relationName}`;
                 const kind = decodeKind(value(relation, 'kind', isObject) ?? throwError());
 
                 const data = [
                     [textCell('Dictionnaire des Données', style.h1)],
-                    [textCell(fullName, kind.abstract ? style.fullNameAbstract : style.fullName)],
-                    [textCell(kind.name, style.kind), ...(kind.inherits ? [textCell('Hérite de', style.kindRight), sheetLinkCell(pascalize(kind.inherits), style.kind)] : [])],
+                    [textCell(qualifiedName(schemaName, relationName), kind.abstract ? style.fullNameAbstract : style.fullName)],
+                    [textCell(kind.name, style.kind), ...(kind.inherits ? [
+                        textCell('Hérite de', style.kindRight),
+                        sheetLinkCell(qualifiedName(schemaName, pascalize(kind.inherits)), style.kind)] : [])],
                     attributeTableColumns.map(c => textCell(c.name, style.th)),
                     attributeTableColumns.map(c => c.desc ? textCell(c.desc, style.thDesc) : emptyCell(style.thDesc)),
                     ...Object.entries(value(relation, 'attrs', isObject) ?? throwError())
@@ -146,7 +147,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                         ...refs.map(ref => {
                             if (!isObject(ref)) throwError();
                             return [
-                                sheetLinkCell(pascalize(value(ref, 'to', isString) ?? throwError()), style.td),
+                                sheetLinkCell(qualifiedName(schemaName, pascalize(value(ref, 'to', isString) ?? throwError())), style.td),
                                 textCell(value(ref, 'description', isString) ?? '', style.td),
                                 textCell(value(ref, 'name', isString) ?? '', style.td), // todo: have some way to signal that this is a link
                                 textCell(value(ref, 'qualifier', isString) ?? '', style.td),
@@ -158,7 +159,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                 const ws = XLSX.utils.aoa_to_sheet(data, { WTF: true });
                 ws['!merges'] = merges;
                 sheet_styleRowsAndColumns(ws);
-                XLSX.utils.book_append_sheet(wb, ws, fullName);
+                XLSX.utils.book_append_sheet(wb, ws, qualifiedName(schemaName, relationName));
             }
         }
         XLSX.writeFile(wb, 'data dictionary.xlsx');
@@ -258,3 +259,6 @@ function throwError(msg?: string): never {
     throw new Error(pError.textContent = 'invalid data dictionary: ' + (msg ?? 'match input against JSON schema for details'));
 }
 
+function qualifiedName(schema: string, relation: string) {
+    return `${schema}.${relation}`;
+}
