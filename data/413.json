@@ -74,8 +74,8 @@
       "kind": {"class": {}},
       "attrs": {
         "libelle"        : { "type": "character[]", "description": "Libellé de l'abonnement", "is": ["pk"] }          ,
-        "prix_journalier": { "type": "decimal", "description": "Prix journalier de l'abonnement", "is": ["required"] },
-        "description"    : { "type": "character[]", "description": "description de l'abonnement", "is": ["required"] }
+        "prix_journalier": { "type": "decimal", "description": "Prix journalier de l'abonnement", "is": ["required"], "domain": {"min_incl": true, "min": "0"} },
+        "description"    : { "type": "character[]", "description": "Description de l'abonnement", "is": ["required"] }
       }
     },
     "image": {
@@ -310,7 +310,7 @@
       "kind": {"class": {}},
       "attrs": {
         "nom"              : { "is": ["pk"], "type": "character[]", "description": "Nom de l'option" }                ,
-        "prix_hebdomadaire": { "is": ["required"], "type": "decimal", "description": "Prix hebdomadaire de l'option" }
+        "prix_hebdomadaire": { "is": ["required"], "type": "decimal", "description": "Prix hebdomadaire de l'option", "domain": {"min_incl": true, "min": "0"} }
       }
     },
     "avis": {
@@ -332,7 +332,7 @@
       },
       "references": [
         {"to": "membre", "name": "auteur", "description": "Le membre auteur de cet avis. Devient null quand l'autuer est supprimé"},
-        {"to": "offre", "description": "L'offre que cett avis commente"}
+        {"to": "offre", "description": "L'offre commentée"}
       ],
       "description": "Un avis d'un membre sur une offre"
     },

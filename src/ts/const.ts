@@ -21,6 +21,6 @@ export const attributeTableColumns: Column[] = [
 export const referencesTableColumns: Column[] = [
     { name: 'Vers', desc: 'Relation référencée' },
     { name: 'Description' },
-    { name: 'Nom', desc: "Nom de l'association" },
+    { name: 'Nom', desc: "Nom de l'assocation" },
     { name: 'Qualificateur', desc: "Qualificateur de ce côté de l'association" },
 ];

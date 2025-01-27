@@ -3,7 +3,9 @@ import { requireElementById, pascalize } from "./util";
 import { emptyCell, style, sheet_styleRowsAndColumns, textCell, sheetLinkCell } from "./style";
 import { EXAMPLE_FILE_URL, attributeTableColumns, referencesTableColumns } from "./const";
 import QualifiedName from "./QualifiedName";
-import { DataDictionary, Domain, Kind, Trait } from "./types";
+import { Domain, Kind, Trait } from "./types";
+import QualifiedReferenceKey from "./QualifiedReferenceKey";
+import { DataDictionary } from "./DataDictionary";
 
 // Element retrievals
 // If an element is only used once, it is acceptable not to put in a constant if it is retrieved immediately (so we get an error immediately if the id is not found)
@@ -64,30 +66,21 @@ buttonGenerate.addEventListener('click', () => void (async () => {
         pError.textContent = null;
         const dd = await getDataDictionary();
 
-        function parseQualifiedName(qualifiedName: string, fallbackSchemaName: string) {
-            const qualName = QualifiedName.parse(qualifiedName, fallbackSchemaName);
-            const schema = dd[qualName.schemaName];
-            if (schema === undefined || schema[qualName.relationName] === undefined) {
-                throwError(`invalid reference: ${qualifiedName} (${qualName.format()})`);
-            }
-            return qualName;
-        };
-
         const wb = XLSX.utils.book_new();
 
-        for (const [schemaName, schema] of Object.entries(dd)) {
+        for (const [schemaName, schema] of Object.entries(dd.schemas)) {
             for (const [relationName, relation] of Object.entries(schema).sort(([a,], [b,]) => a.localeCompare(b))) {
-                const qualName = new QualifiedName(schemaName, relationName).format();
+                const qualName = new QualifiedName(schemaName, relationName);
 
-                const kind = decodeKind(relation.kind) ?? throwError('could not decode kind in ' + qualName);
+                const kind = decodeKind(relation.kind) ?? throwError('could not decode kind in ' + qualName.format());
 
                 const data = [
                     [textCell('Dictionnaire des Données', style.h1)],
-                    [textCell(qualName, kind.abstract ? style.fullNameAbstract : style.fullName,
+                    [textCell(qualName.format(), kind.abstract ? style.fullNameAbstract : style.fullName,
                     )],
                     [textCell(kind.name, style.kind), ...(kind.inherits ? [
                         textCell('Hérite de', style.kindRight),
-                        sheetLinkCell(parseQualifiedName(kind.inherits, schemaName).format(), style.kind)] : [])],
+                        sheetLinkCell(dd.parseQualifiedName(kind.inherits, schemaName).format(), style.kind)] : [])],
                     attributeTableColumns.map(c => textCell(c.name, style.th)),
                     attributeTableColumns.map(c => c.desc ? textCell(c.desc, style.thDesc) : emptyCell(style.thDesc)),
                     ...Object.entries(relation.attrs)
@@ -134,27 +127,40 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                     );
                 }
 
-                const refs = relation.references ?? [];
-                // todo.. union opposite references (all relations that reference this one)
-                if (refs.length > 0) {
+                const refs = dd.getReferences(relation, schemaName);
+                // add opposite references (all relations that reference this one)
+                for (const [schemaName2, schema2] of Object.entries(dd.schemas)) {
+                    for (const [relationName2, relation2] of Object.entries(schema2)) {
+                        for (const ref2Key of dd.getReferences(relation2, schemaName2).keys()) {
+                            if (ref2Key.to.equals(qualName)) {
+                                const key = new QualifiedReferenceKey(new QualifiedName(schemaName2, relationName2), ref2Key.name);
+                                if (!refs.has(key)) refs.set(key, {});
+                            }
+                        }
+                    }
+                }
+
+                if (refs.size > 0) {
                     data.push(
                         [],
                         [textCell('Navigation', style.h3)],
                         referencesTableColumns.map(c => textCell(c.name, style.th)),
                         referencesTableColumns.map(c => c.desc ? textCell(c.desc, style.thDesc) : emptyCell(style.thDesc)),
-                        ...refs.map(ref => [
-                            sheetLinkCell(parseQualifiedName(ref.to, schemaName).format(), style.td),
-                            textCell(ref.description ?? '', style.td),
-                            textCell(ref.name ?? '', style.td), // todo: have some way to signal that this is a link
-                            textCell(ref.qualifier ?? '', style.td),
-                        ]),
+                        ...Array.from(refs.entries())
+                            .sort((a, b) => a[0].compareTo(b[0]))
+                            .map(([key, ref]) => [
+                                sheetLinkCell(key.to.format(), style.td),
+                                textCell(ref.description ?? '', style.td),
+                                textCell(key.name ?? '', style.td), // todo: have some way to signal that this is a link
+                                textCell(ref.qualifier ?? '', style.td),
+                            ]),
                     );
                 }
 
                 const ws = XLSX.utils.aoa_to_sheet(data, { WTF: true });
                 ws['!merges'] = merges;
                 sheet_styleRowsAndColumns(ws);
-                XLSX.utils.book_append_sheet(wb, ws, qualName);
+                XLSX.utils.book_append_sheet(wb, ws, qualName.format());
             }
         }
         XLSX.writeFile(wb, 'data dictionary.xlsx');
@@ -179,7 +185,7 @@ async function getDataDictionary(): Promise<DataDictionary> {
         else throwError('no data');
     }
 
-    return JSON.parse(dds) as DataDictionary;
+    return new DataDictionary(JSON.parse(dds));
 }
 
 // "Update" function
@@ -215,10 +221,10 @@ function decodeKind(kind: Kind): {
 function decodeDomain(domain: Domain) {
     if (typeof domain === 'string') return domain;
     const inf = '\u221E';
-    const minIncl = domain.min_incl ? '[' : ']',
+    const minIncl = domain.min !== undefined && domain.min_incl ? '[' : ']',
         min = domain.min ?? inf,
         max = domain.max ?? inf,
-        maxIncl = domain.max_incl ? ']' : '[';
+        maxIncl = domain.max !== undefined && domain.max_incl ? ']' : '[';
     return minIncl + min + ';' + max + maxIncl;
 }
 

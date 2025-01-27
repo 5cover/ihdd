@@ -1,4 +1,3 @@
-export type DataDictionary = Record<string, Record<string, Relation>>;
 
 export interface Relation {
     kind: Kind,
@@ -7,7 +6,7 @@ export interface Relation {
     references?: Reference[],
 }
 
-export type Kind = { 'association'?: KindAssociation, 'class'?: KindClass };
+export type Kind = { 'association'?: KindAssociation, 'class'?: KindClass; };
 
 export interface KindAssociation {
     left: string,
@@ -28,7 +27,7 @@ export interface Attribute {
     domain?: Domain;
 }
 
-export type Trait = (string | { 'default': string } | { 'computed': string });
+export type Trait = (string | { 'default': string; } | { 'computed': string; });
 
 export type Domain = string | { min_incl?: boolean, min?: string, max?: string, max_incl?: boolean, };
 
@@ -38,3 +37,9 @@ export interface Reference {
     name?: string,
     qualifier?: string,
 }
+
+export interface QualifiedReference {
+    description?: string;
+    qualifier?: string;
+}
+
