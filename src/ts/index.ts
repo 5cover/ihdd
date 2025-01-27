@@ -134,7 +134,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                     );
                 }
 
-                const refs = Object.entries(value(relation, 'references', isObject) ?? {});
+                const refs = value(relation, 'references', isArray) ?? [];
                 // todo.. union opposite references (all relations that reference this one)
                 if (refs.length > 0) {
                     data.push(
@@ -142,10 +142,10 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                         [textCell('Navigation', style.h3)],
                         referencesTableColumns.map(c => textCell(c.name, style.th)),
                         referencesTableColumns.map(c => c.desc ? textCell(c.desc, style.thDesc) : emptyCell(style.thDesc)),
-                        ...refs.map(([inRefName, ref]) => {
+                        ...refs.map(ref => {
                             if (!isObject(ref)) throwError();
                             return [
-                                sheetLinkCell(pascalize(inRefName), style.td),
+                                sheetLinkCell(pascalize(value(ref, 'to', isString) ?? throwError()), style.td),
                                 textCell(value(ref, 'description', isString) ?? '', style.td),
                                 textCell(value(ref, 'name', isString) ?? '', style.td), // todo: have some way to signal that this is a link
                                 textCell(value(ref, 'qualifier', isString) ?? '', style.td),
