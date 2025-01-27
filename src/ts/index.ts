@@ -6,9 +6,10 @@ import { EXAMPLE_FILE_URL, attributeTableColumns, referencesTableColumns } from 
 // Element retrievals
 // If an element is only used once, it is acceptable not to put in a constant if it is retrieved immediately (so we get an error immediately if the id is not found)
 
-// todo: multiple references to the same offer : make it an array
 // todo: composed pk
 // todo: prefefiend domains
+// todo: auto add references for associations
+// todo: check validity of entity names in in associations>left/right, inherits, references>to, + support interschema references (parse as Schema.Name notation, if it doesn't have a schema, consider the current schema)
 
 const inputFile = requireElementById('input-file') as HTMLInputElement;
 const buttonClearFile = requireElementById('button-clear-file') as HTMLButtonElement;

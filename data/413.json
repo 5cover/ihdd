@@ -319,10 +319,135 @@
         "commentaire": {"type": "character[]", "is": ["required"],"description": "Contenu de l'avis"},
         "note":{"type":"integer","domain":{"min": "1","min_incl": true,"max":"5", "max_incl": true}, "description": "Note de l'avis"},
         "publie_le":{"type":"timestamp","is": ["required", {"default": "localtimestamp (maintenant)"}], "description": "Instant de publication de l'avis"},
-        "date_experience":{"type": "timestamp", "description": "Date de l'expérience de l'auteur"},
-        "contexte":{"type": "character[]", "description": "Contexte de l'expérience", "remarks": "Une sélection de contextes par défaut est disponibles sur le site mais la BDD supporte les contextes personnalisés"},
-        "lu": {"type": "boolean", "description": "Si cet avis a été lu par le professionnel propriétaire de l'offre qu'il commente"}
+        "date_experience":{"type": "timestamp", "description": "Date de l'expérience de l'auteur", "is": ["required"]},
+        "contexte":{"type": "character[]", "description": "Contexte de l'expérience", "remarks": "Une sélection de contextes par défaut est disponibles sur le site mais la BDD supporte les contextes personnalisés", "is": ["required"]},
+        "lu": {"type": "boolean", "description": "Si cet avis a été lu par le professionnel propriétaire de l'offre qu'il commente", "is": ["required", {"default": "false"}]},
+        "blackliste": {
+          "type": "boolean", "description": "Si cet avis a éta blacklisté par le propriétaire de l'offre qu'il commente", "is": ["required", {"default": "false"}]
+        },
+        "likes": {"type": "integer", "description": "Nombre de \"J'aime\" sur cet avis", "domain": {"min": "0", "min_incl": true}, "is": ["required", {"default": "0"}]},
+        "dislikes": {"type":"integer", "description": "Nombre de \"Je n'aime pas\" sur cet avis", "domain":{"min": "0", "min_incl": true}, "is": ["required", {"default": "0"}]}
+
+      },
+      "references": [
+        {"to": "membre", "name": "auteur", "description": "Le membre auteur de cet avis. Devient null quand l'autuer est supprimé"},
+        {"to": "offre", "description": "L'offre que cett avis commente"}
+      ],
+      "description": "Un avis d'un membre sur une offre"
+    },
+    "avis_restaurant": {
+      "description": "Un avis spécialisé pour les restaurants",
+      "kind": {"class": {"inherits": "avis"}},
+      "attrs": {
+        "id": {"type": "integer", "is": ["pk"]},
+        "note_cuisine":{"type": "integer","domain":{"min": "0", "min_incl": true, "max": "5", "max_incl": true}, "is": ["required"], "description": "Note de la cuisine"},
+        "note_service":{"type": "integer","domain":{"min": "0", "min_incl": true, "max": "5", "max_incl": true}, "is": ["required"], "description": "Note de lu service"},
+        "note_ambiance":{"type": "integer","domain":{"min": "0", "min_incl": true, "max": "5", "max_incl": true}, "is": ["required"], "description": "Note de l'ambiance"},
+        "note_qualite_prix":{"type": "integer","domain":{"min": "0", "min_incl": true, "max": "5", "max_incl": true}, "is": ["required"], "description": "Note du rapport qualité/prix"}
       }
+    },
+    "reponse": {
+      "description": "Réponse d'un professionnel à un avis",
+      "kind": {"class": {"inherits": "avis"}},
+      "attrs": {
+        "id": {"is": ["pk"], "type":"integer"},
+        "contenu": {"is": ["required"], "type":"character[]", "description": "Contenu de la réponse"}
+      },
+      "references": [
+        {"to": "avis", "description": "Avis répondu"}
+      ]
+    },
+    "ouverture_hebdomadaire": {
+      "kind": {"class": {}},
+      "description": "Horaires d'ouverture hebdomadaire d'une offre",
+      "attrs": {
+        "dow": {"type": "integer","domain":{"min": "0","min_incl": true,"max_incl": true, "max": "6"}, "description": "Jour de la semaine (0: dimanche, ..., 6: samedi", "is": ["pk"]},
+        "horaires": {
+          "type": "timemultirange",
+          "is": ["required"],
+          "constraints": ["Non vide"],
+          "description": "Multi-ensemble des heures d'ouverture pour ce jour"
+        }
+      },
+      "references": [
+        {"to": "offre", "description": "Offre concernées par ces horaires", "qualifier": "id_offre"}
+      ]
+    },
+    "changement_etat": {
+      "kind": {"class": {}},
+      "description": "Changement d'état (mise en ligne / hors-ligne) d'une offre",
+      "attrs": {
+        "fait_le": {"is": ["pk"],"type": "timestamp", "description": "Instant du changement d'état"}
+      },
+      "references": [
+        {"to": "offre", "qualifier": "id_offre", "description": "Offre ayant changé d'état"}
+      ]
+    },
+    "code_postal": {
+      "kind": {"class": {}},
+      "description": "Code postal d'une commune",
+      "references": [
+        {"to": "commune", "description": "Commune référencée par ce code postal"}
+      ],
+      "attrs": {
+        "code_postal": {
+          "description": "Code postal",
+          "domain": "Code postal",
+          "is": ["required"],
+          "type": "character[]"
+        }
+      }
+    },
+    "tags": {
+      "kind": {"class":{}},
+      "description": "Tag d'une offre",
+      "attrs": {
+        "tag": {
+          "type": "character[]",
+          "description": "Tag",
+          "is": ["pk"],
+          "remarks": "Clé primaire avec id_offre"
+        }
+      },
+      "references": [
+        {"to": "offre", "qualifier": "id_offre"}
+      ]
+    },
+    "signalement": {
+      "kind": {"association": {"left": "signalable", "right": "compte"}},
+      "description": "Signalement d'un contenenu signalalble par un compte",
+      "attrs": {
+        "raison": {"is": ["required"], "description": "Raison de ce signalement", "type": "character[]"}
+      }
+    },
+    "souscription_option": {
+      "kind": {
+        "association": {"left": "offre", "right": "option"}
+      },
+      "description": "Souscription d'une offre à une option",
+      "attrs": {
+        "lancee_le": {
+          "description": "Instant de début de la souscription",
+          "type": "timestamp",
+          "is": ["required"]
+        },
+        "nb_semaines": {
+          "description": "Nombre de semaines souscrites",
+          "type": "integer",
+          "domain": {"min": "1", "min_incl": true, "max": "4", "max_incl": true},
+          "is": ["required"]
+        },
+        "actif": {
+          "description": "Si la souscription est actuellement active",
+          "type": "boolean",
+          "is": ["required", {"default": "true"}]
+          
+        }
+      },
+      "references": [
+        {"to": "offre", "qualifier": "id_offre"},
+        {"to": "option", "qualifier": "nom_option"}
+      ]
     }
   },
   "tchattator": {

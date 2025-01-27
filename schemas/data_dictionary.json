@@ -100,7 +100,8 @@
                   "decimal",
                   "boolean",
                   "uuid",
-                  "tsmultirange"
+                  "tsmultirange",
+                  "timemultirange"
                 ]
               },
               "domain": {
