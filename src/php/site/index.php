@@ -5,7 +5,7 @@ require_once 'const.php';
 $page = new Page('Home', scripts: ['index.js']);
 $page->put(function () {
 ?>
-<h1><?= h14s(SITE_NAME) ?>!</h1>
+<h1><?= h14s(SITE_NAME) ?></h1>
 <p><em lang="fr">Je déteste les dictionnaires des données&nbsp;!</em></p>
 
 <h2>Generate a data dictionary</h2>

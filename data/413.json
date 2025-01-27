@@ -290,7 +290,8 @@
       "description": "Compte membre",
       "attrs": {
         "id": { "type": "integer", "is": ["pk"] },
-        "pseudo": {"type": "character[]", "description": "Pseudonyme"}
+        "pseudo": {"type": "character[]", "description": "Pseudonyme"},
+        "full_block_expires_on":{"type": "timestamp", "description": "L'instant d'expiration du bannissement global de ce membre de la plateforme de Tchattator."}
       }
     },
     "tarif": {
@@ -451,35 +452,36 @@
     }
   },
   "tchattator": {
-    "test": {
+    "message": {
       "kind": {"class": {}},
+      "description": "Message entre deux utilisateurs",
       "attrs": {
-        "a": { "type": "time", "is": ["pk"] },
-        "b": { "type": "time", "is": ["required"] },
-        "c": { "type": "time", "is": ["required", "unique"] },
-        "d": {
-          "type": "time",
-          "is": [ "required", "unique", {"default": "value"} ]
+        "id":{"type": "serial","is": ["pk"]},
+        "sent_on":{"type": "timestamp","is":["required"],"description": "Instant d'envoi du message"},
+        "modified_on":{"type": "timestamp","constraints": ["> sent_on"], "description": "Instant de dernière modificiation du message (null si le message n'a pas été modifié)"},
+        "deleted_on":{"type":"timestamp","constraints": ["> modified_on, > sent_on"], "description": "Instant de supression du message (null si le message n'a pas été supprimé)"},
+        "content":{"type":"character[]","is": ["required"],"description": "Contenu du message"},
+        "read":{"type":"boolean","is":["required", {"default": "false"}], "description": "Si ce message a été lu par son destinataire"}
+      },
+      "references": [
+        {
+          "to": "pact.compte",
+          "description": "Expéditeur du message (ou null pour l'administrateur)"
         },
-        "e": {
-          "type": "time",
-          "is": [ "required", {"default": "value"} ]
-        },
-        "f": {
-          "type": "time",
-          "is": [ "required", {"computed": "by"} ]
-        },
-        "g": {
-          "type": "time",
-          "is": [ "unique", {"default": "value"} ]
-        },
-        "h": {
-          "type": "time",
-          "is": [ {"computed": "by"} ]
-        },
-        "i": {
-          "type": "time",
-          "is": [ {"default": "value"} ]
+        {
+          "to": "pact.compte",
+          "description": "Destinataire du message (jamais null - l'administrateur ne peut pas recevoir de messages)"
+        }
+      ]
+    },
+    "single_block": {
+      "kind": {"association": {"left": "membre", "right": "professionnel"}},
+      "description": "Blocage d'un membre (aka. client) par un professionnel",
+      "attrs": {
+        "expires_on": {
+          "is": ["required", {"default": "infinity"}],
+          "type": "timestamp",
+          "description": "Quand ce blocage expirera (\"infinity\" pour signaler qu'il est définitif)"
         }
       }
     }

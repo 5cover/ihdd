@@ -2,6 +2,7 @@ import * as XLSX from "xlsx-js-style";
 import { requireElementById, pascalize, isIdentifier, isObject, isString, isBool, isArray, isStringOrObject } from "./util";
 import { emptyCell, style, sheet_styleRowsAndColumns, textCell, sheetLinkCell } from "./style";
 import { EXAMPLE_FILE_URL, attributeTableColumns, referencesTableColumns } from "./const";
+import QualifiedName from "./QualifiedName";
 
 // Element retrievals
 // If an element is only used once, it is acceptable not to put in a constant if it is retrieved immediately (so we get an error immediately if the id is not found)
@@ -83,10 +84,13 @@ buttonGenerate.addEventListener('click', () => void (async () => {
 
                 const data = [
                     [textCell('Dictionnaire des Données', style.h1)],
-                    [textCell(qualifiedName(schemaName, relationName), kind.abstract ? style.fullNameAbstract : style.fullName)],
+                    [textCell(
+                        new QualifiedName(schemaName, relationName).format(),
+                        kind.abstract ? style.fullNameAbstract : style.fullName,
+                    )],
                     [textCell(kind.name, style.kind), ...(kind.inherits ? [
                         textCell('Hérite de', style.kindRight),
-                        sheetLinkCell(qualifiedName(schemaName, pascalize(kind.inherits)), style.kind)] : [])],
+                        sheetLinkCell(QualifiedName.parse(pascalize(kind.inherits), schemaName).format(), style.kind)] : [])],
                     attributeTableColumns.map(c => textCell(c.name, style.th)),
                     attributeTableColumns.map(c => c.desc ? textCell(c.desc, style.thDesc) : emptyCell(style.thDesc)),
                     ...Object.entries(value(relation, 'attrs', isObject) ?? throwError())
@@ -147,7 +151,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                         ...refs.map(ref => {
                             if (!isObject(ref)) throwError();
                             return [
-                                sheetLinkCell(qualifiedName(schemaName, pascalize(value(ref, 'to', isString) ?? throwError())), style.td),
+                                sheetLinkCell(QualifiedName.parse(pascalize(value(ref, 'to', isString) ?? throwError()), schemaName).format(), style.td),
                                 textCell(value(ref, 'description', isString) ?? '', style.td),
                                 textCell(value(ref, 'name', isString) ?? '', style.td), // todo: have some way to signal that this is a link
                                 textCell(value(ref, 'qualifier', isString) ?? '', style.td),
@@ -159,7 +163,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                 const ws = XLSX.utils.aoa_to_sheet(data, { WTF: true });
                 ws['!merges'] = merges;
                 sheet_styleRowsAndColumns(ws);
-                XLSX.utils.book_append_sheet(wb, ws, qualifiedName(schemaName, relationName));
+                XLSX.utils.book_append_sheet(wb, ws, new QualifiedName(schemaName, relationName).format());
             }
         }
         XLSX.writeFile(wb, 'data dictionary.xlsx');
@@ -257,8 +261,4 @@ function value<K extends string, V>(obj: object, key: K, guard: (v: unknown) => 
 
 function throwError(msg?: string): never {
     throw new Error(pError.textContent = 'invalid data dictionary: ' + (msg ?? 'match input against JSON schema for details'));
-}
-
-function qualifiedName(schema: string, relation: string) {
-    return `${schema}.${relation}`;
 }

@@ -58,7 +58,7 @@ export function emptyCell(style?: Style): XLSX.CellObject {
 }
 
 export function sheetLinkCell(sheetName: string, style?: Style): XLSX.CellObject {
-    return { v: sheetName, t: 's', s: style ?? styleRegular, l: { Target: sheetName, Tooltip: `Lien vers la feuille ${sheetName}` } };
+    return { v: sheetName, t: 's', s: style ?? styleRegular, l: { Target: '#' + sheetName, Tooltip: `Lien vers la feuille ${sheetName}` } };
 }
 
 export function sheet_styleRowsAndColumns(ws: XLSX.WorkSheet) {
