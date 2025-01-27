@@ -84,7 +84,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
 
                 const data = [
                     [textCell('Dictionnaire des Données', style.h1)],
-                    [textCell(fullName, kind.abstract ? style.fullName : style.fullNameAbstract)],
+                    [textCell(fullName, kind.abstract ? style.fullNameAbstract : style.fullName)],
                     [textCell(kind.name, style.kind), ...(kind.inherits ? [textCell('Hérite de', style.kindRight), sheetLinkCell(pascalize(kind.inherits), style.kind)] : [])],
                     attributeTableColumns.map(c => textCell(c.name, style.th)),
                     attributeTableColumns.map(c => c.desc ? textCell(c.desc, style.thDesc) : emptyCell(style.thDesc)),
