@@ -6,6 +6,10 @@ import { EXAMPLE_FILE_URL, attributeTableColumns, referencesTableColumns } from 
 // Element retrievals
 // If an element is only used once, it is acceptable not to put in a constant if it is retrieved immediately (so we get an error immediately if the id is not found)
 
+// todo: multiple references to the same offer : make it an array
+// todo: composed pk
+// todo: prefefiend domains
+
 const inputFile = requireElementById('input-file') as HTMLInputElement;
 const buttonClearFile = requireElementById('button-clear-file') as HTMLButtonElement;
 const buttonLoadExample = requireElementById('button-load-example') as HTMLButtonElement;

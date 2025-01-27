@@ -54,17 +54,17 @@
           "type": "string"
         },
         "references": {
-          "type": "object",
-          "propertyNames": {
-            "$ref": "#/definitions/identifier"
-          },
-          "additionalProperties": {
+          "type": "array",
+          "items": {
             "type": "object",
             "properties": {
-              "description": {
-                "type": "string"
+              "to": {
+                "$ref": "#/definitions/identifier"
               },
               "name": {
+                "type": "string"
+              },
+              "description": {
                 "type": "string"
               },
               "qualifier": {
@@ -98,7 +98,9 @@
                   "time",
                   "timestamp",
                   "decimal",
-                  "boolean"
+                  "boolean",
+                  "uuid",
+                  "tsmultirange"
                 ]
               },
               "domain": {

@@ -1,58 +1,139 @@
 {
   "pact": {
-    "visite": {
-      "description": "Offre de la catégorie \"visite\".",
-      "kind": { "class": {"inherits": "offre"} },
-      "references": {
-        "langue": {
-          "description": "Langues de la visite, pour les visites guidées. Pas de langues = visite non guidée",
-          "name"       : "langues"
+    "departement": {
+      "description": "Un département français",
+      "kind": {"class": {}},
+      "attrs": {
+        "numero": {
+          "is": ["pk"],
+          "description": "Numéro de département",
+          "type": "character[]",
+          "domain": "Numéros de département"
+        },
+        "nom": { "is": ["required", "unique"], "type": "character[]", "description": "Nom du département" }
+      }
+    },
+    "commune": {
+      "description": "Une commune française",
+      "kind": {"class": {}},
+      "attrs": {
+        "code": { "type": "integer", "is": ["pk"], "description": "Code INSEE de la commune" },
+        "numero_departement": {
+          "type": "character[]",
+          "is": ["pk"],
+          "domain": "Numéros de département",
+          "description": "Numéro de département de la commune"
+        },
+        "nom": { "is": ["required"], "type": "character[]", "description": "Nom de la commune" }
+      },
+      "references": [ {"to": "departement", "description": "Département de la commune", "name": "departement"} ]
+    },
+    "adresse": {
+      "kind": {"class": {}},
+      "attrs": {
+        "id": { "type": "serial", "is": ["pk"] },
+        "numero_voie": {
+          "type": "integer",
+          "description": "Numéro dans la voie",
+          "domain": {"min_incl": true, "min": "0"},
+          "constraints": ["Existe si complement_numero existe"],
+          "is": ["required"]
+        },
+        "complement_numero": {
+          "type": "character[]",
+          "description": "Complément au numéro dans la voie (B, T, Q, C)",
+          "constraints": ["N'existe pas si numero n'existe pas", "Longueur ≤ 10"]
+        },
+        "nom_voie": {"type": "character[]", "description": "Nom de la voie"},
+        "localite": {"type": "character[]", "description": "Hameau, lieu-dit... Chaîne vide pour aucun."},
+        "code_postal": { "type": "character[]", "description": "Code postal", "constraints": ["Longueur = 5"] },
+        "precision_int": {"type": "character[]", "description": "Précision interne (apt., Boîte à lettre, étage...)"},
+        "precision_ext": {"type": "character[]", "description": "Précision externe (bâtiment, voie, résidence...)"},
+        "lat": {
+          "type": "decimal",
+          "description": "Latitude",
+          "domain": "Latitude décimale",
+          "constraints": ["Existe avec long"]
+        },
+        "long": {
+          "type": "decimal",
+          "description": "Longitude",
+          "domain": "Longitude décimale",
+          "constraints": ["Existe avec lat"]
         }
       },
-      "attrs": {
-        "id"              : { "type": "integer" , "is": ["pk"      ]                                      },
-        "indication_duree": { "type": "interval", "is": ["required"], "description": "Durée de la visite" }
-      }
+      "references": [
+        {"to": "commune", "description": "Commune où se trouve l'adresse"},
+        {"to": "offre"  , "description": "Offre située à cette adresse"  },
+        {"to": "compte" , "description": "Compte situé à cette adresse"  }
+      ],
+      "description": "Adresse postale normalisée (AFNOR NF Z 10-011)."
     },
-    "langue": {
-      "description": "Nom de langue conforme à la norme ISO 639-1.",
+    "abonnement": {
+      "description": "Modèle d'abonnement pour professionnel",
       "kind": {"class": {}},
-      "references": { "visite": {"description": "Langues disponibles pour une visite guidée", "name": "langues"} },
       "attrs": {
-        "iso639_1": {
-          "description": "Code de langue normé",
-          "type": "character[]",
-          "domain": "Code de langue ISO 639-1",
-          "is": ["pk"],
-          "constraints": ["Longueur = 2"]
-        },
-        "libelle": { "description": "Nom français de la langue", "type": "character[]", "is": ["required"] }
+        "libelle"        : { "type": "character[]", "description": "Libellé de l'abonnement", "is": ["pk"] }          ,
+        "prix_journalier": { "type": "decimal", "description": "Prix journalier de l'abonnement", "is": ["required"] },
+        "description"    : { "type": "character[]", "description": "description de l'abonnement", "is": ["required"] }
       }
     },
-    "spectacle": {
-      "description": "Offre de la catégorie \"spectacle\".",
-      "kind": { "class": {"inherits": "offre"} },
+    "image": {
+      "description": "Une image téléversée par un utilisateur",
+      "kind": {"class": {}},
       "attrs": {
-        "id": { "type": "integer", "is": ["pk"] },
-        "indication_duree": { "type": "interval", "is": ["required"], "description": "Durée du spectacle" },
-        "capacite_accueil": {
-          "type": "integer",
-          "is": ["required"],
-          "domain": {"min": "0"},
-          "description": "Capacité d'accueil du spectacle"
-        }
+        "id"          : { "type": "serial"     , "is": ["pk"      ]                                               },
+        "taille"      : { "type": "integer"    , "is": ["required"], "description": "Taille en octets de l'image" },
+        "mime_subtype": { "type": "character[]", "is": ["required"], "description": "Sous-type MIME image/*"      },
+        "legende"     : { "type": "character[]",                     "description": "Légende"                     }
       }
     },
-    "activité": {
-      "description": "Offre de la catégorie \"activité\".",
-      "kind": { "class": {"inherits": "offre"} },
+    "signalable": {
+      "kind": { "class": {"abstract": true} },
+      "description": "Un contenu pouvant être signalé",
       "attrs": {
-        "id": { "type": "integer", "is": ["pk"] },
-        "indication_duree": { "type": "interval", "is": ["required"], "description": "Durée de l'activité" },
-        "age_requis": { "type": "integer", "description": "Âge minimum requis", "domain": {"min": "0"} },
-        "prestations_incluses": { "type": "character[]", "is": ["required"], "description": "Prestations incluses" },
-        "prestations_non_incluses": {"type": "character[]", "description": "Prestations non incluses"}
+        "id": { "type": "serial", "is": ["pk"] }
       }
+    },
+    "compte": {
+      "kind": { "class": {"abstract": true, "inherits": "signalable"} },
+      "description": "Compte utilisateur",
+      "attrs": {
+        "id"       : { "type": "integer", "is": ["pk"] }                                                ,
+        "email"    : { "type": "character[]", "domain": "Adresse e-mail", "is": ["required", "unique"] },
+        "nom"      : { "type": "character[]", "is": ["required"] }                                      ,
+        "prenom"   : { "type": "character[]", "is": ["required"] }                                      ,
+        "telephone": { "type": "character[]", "domain": "Numéro de téléphone", "is": ["required"] }     ,
+        "api_key"  : { "type": "uuid", "is": ["unique"], "description": "Clé d'API pour le tchattator" }
+      },
+      "references": [ {"to": "adresse", "description": "Adresse de cet utilisateur"} ]
+    },
+    "professionnel": {
+      "kind": { "class": {"abstract": true, "inherits": "compte"} },
+      "description": "Compte professionnel",
+      "attrs": {
+        "id": { "is": ["pk"], "type": "integer" },
+        "denomination": { "is": ["required"], "description": "Raison sociale de l'organisation", "type": "character[]" }
+      }
+    },
+    "offre": {
+      "kind": { "class": {"abstract": true, "inherits": "signalable"} },
+      "attrs": {
+        "id"                   : { "is": ["pk"      ], "type": "integer"      },
+        "titre"                : { "is": ["required"], "type": "character[]"  },
+        "resume"               : { "is": ["required"], "type": "character[]"  },
+        "description_detaillee": { "is": ["required"], "type": "character[]"  },
+        "url_site_web"         : {                     "type": "character[]"  },
+        "periodes_ouverture"   : { "is": ["required"], "type": "tsmultirange" }
+      },
+      "references": [
+        {"to": "adresse", "description": "Adresse de cette offre"}                         ,
+        {"to": "image", "description": "Image principale", "name": "image_principale"}     ,
+        {"to": "image", "name": "galerie", "description": "Images de la galerie"}          ,
+        {"to": "professionnel", "description": "Professionnel propriétaire de cette offre"},
+        {"to": "abonnement", "description": "Abonnement de cette offre"},
+        {"to": "tarif", "description": "Grille tarifaire de cette offre (si abonnement non gratuit)", "name": "tarifs"}
+      ]
     },
     "restaurant": {
       "description": "Offre de la catégorie \"restaurant\".",
@@ -94,28 +175,82 @@
         "carte": { "type": "character[]", "description": "Carte du restaurant", "is": ["required"] }
       }
     },
-    "moyen_de_paiement": {
-      "description": "Moyen de paiement associés à un compte professionnel pour la facturation automatique des offres payantes.\n\nImplémentations futures :\n- Paypal\n- Autorisation de prélèvement\n- ...\n\nPermet le prélèvement automatique (au 1er du mois)",
-      "kind": { "class": {"abstract": true} },
-      "references": {
-        "prive": {
-          "description": "Professionnel privé auquel ce moyen de paiement appartient",
-          "name"       : "moyens de paiement"                                        ,
-          "qualifier"  : "siren"
-        }
-      },
+    "activité": {
+      "description": "Offre de la catégorie \"activité\".",
+      "kind": { "class": {"inherits": "offre"} },
       "attrs": {
-        "id": { "type": "serial", "is": ["pk"] }
+        "id": { "type": "integer", "is": ["pk"] },
+        "indication_duree": { "type": "interval", "is": ["required"], "description": "Durée de l'activité" },
+        "age_requis": { "type": "integer", "description": "Âge minimum requis", "domain": {"min": "0"} },
+        "prestations_incluses": { "type": "character[]", "is": ["required"], "description": "Prestations incluses" },
+        "prestations_non_incluses": {"type": "character[]", "description": "Prestations non incluses"}
       }
     },
-    "public": {
-      "kind": { "class": {"inherits": "professionnel"} },
-      "description": "Compte professionnel public",
+    "visite": {
+      "description": "Offre de la catégorie \"visite\".",
+      "kind": { "class": {"inherits": "offre"} },
+      "references": [
+        {
+          "to"         : "langue"                                                                            ,
+          "description": "Langues de la visite, pour les visites guidées. Pas de langues = visite non guidée",
+          "name"       : "langues"
+        }
+      ],
       "attrs": {
-        "id": { "type": "integer", "is": ["pk"] }
+        "id"              : { "type": "integer" , "is": ["pk"      ]                                      },
+        "indication_duree": { "type": "interval", "is": ["required"], "description": "Durée de la visite" }
       }
+    },
+    "langue": {
+      "description": "Nom de langue conforme à la norme ISO 639-1.",
+      "kind": {"class": {}},
+      "references": [
+        {"to": "visite", "description": "Langues disponibles pour une visite guidée", "name": "langues"}
+      ],
+      "attrs": {
+        "iso639_1": {
+          "description": "Code de langue normé",
+          "type": "character[]",
+          "domain": "Code de langue ISO 639-1",
+          "is": ["pk"],
+          "constraints": ["Longueur = 2"]
+        },
+        "libelle": { "description": "Nom français de la langue", "type": "character[]", "is": ["required"] }
+      }
+    },
+    "spectacle": {
+      "description": "Offre de la catégorie \"spectacle\".",
+      "kind": { "class": {"inherits": "offre"} },
+      "attrs": {
+        "id": { "type": "integer", "is": ["pk"] },
+        "indication_duree": { "type": "interval", "is": ["required"], "description": "Durée du spectacle" },
+        "capacite_accueil": {
+          "type": "integer",
+          "is": ["required"],
+          "domain": {"min": "0"},
+          "description": "Capacité d'accueil du spectacle"
+        }
+      }
+    },
+    "parc_attractions": {
+      "kind": { "class": {"inherits": "offre"} },
+      "references": [ {"to": "image", "name": "plan", "description": "Plan du parc"} ],
+      "attrs": {
+        "id": { "is": ["pk"], "type": "integer" },
+        "nb_attractions": {
+          "is": ["required"],
+          "type": "integer",
+          "domain": {"min": "0", "min_incl": true},
+          "description": "Nombre d'attractions du parc"
+        },
+        "age_requis": { "type": "integer", "domain": {"min": "0"}, "description": "Âge minimum requis du parc" }
+      },
+      "description": "Offre de la catégorie \"parc d'attractions\"."
     },
     "privé": {
+      "references": [
+        {"to": "moyen_de_paiement", "name": "moyens de paiement", "description": "Moyens de paiement de ce professionnel privé"}
+      ],
       "description": "Compte professionnel privé",
       "kind": { "class": {"inherits": "professionnel"} },
       "attrs": {
@@ -128,6 +263,47 @@
         }
       }
     },
+    "moyen_de_paiement": {
+      "description": "Moyen de paiement associés à un compte professionnel pour la facturation automatique des offres payantes.\n\nImplémentations futures :\n- Paypal\n- Autorisation de prélèvement\n- ...\n\nPermet le prélèvement automatique (au 1er du mois)",
+      "kind": { "class": {"abstract": true} },
+      "references": [
+        {
+          "to"         : "prive"                                                     ,
+          "description": "Professionnel privé auquel ce moyen de paiement appartient",
+          "name"       : "moyens de paiement"                                        ,
+          "qualifier"  : "siren"
+        }
+      ],
+      "attrs": {
+        "id": { "type": "serial", "is": ["pk"] }
+      }
+    },
+    "public": {
+      "kind": { "class": {"inherits": "professionnel"} },
+      "description": "Compte professionnel public",
+      "attrs": {
+        "id": { "type": "integer", "is": ["pk"] }
+      }
+    },
+    "membre": {
+      "kind": {"class": {"inherits": "compte"}},
+      "description": "Compte membre",
+      "attrs": {
+        "id": { "type": "integer", "is": ["pk"] },
+        "pseudo": {"type": "character[]", "description": "Pseudonyme"}
+      }
+    },
+    "tarif": {
+      "description": "Tarif dans une grille tarifaire",
+      "attrs": {
+        "nom": {"type": "character[]","is": ["pk"], "description": "Nom du tarif", "remarks": "Clé composée avec id_offre"},
+        "montant": {"type": "decimal","is":["required"], "description": "Montant du tarif", "domain":{"min": "0","max_incl": true}}
+      },
+      "kind": {"class": {}},
+      "references": [
+        {"to": "offre","description": "Offre contenant ce tarif"}
+      ]
+    },
     "option": {
       "description": "Une option de mise en avant pour une offre premium. Entraîne une coût supplémentaire.\n\nEnsemble fermé de valeurs :\n\n- Relief\n- À La Une",
       "kind": {"class": {}},
@@ -136,135 +312,18 @@
         "prix_hebdomadaire": { "is": ["required"], "type": "decimal", "description": "Prix hebdomadaire de l'option" }
       }
     },
-    "departement": {
-        "description": "Un département français",
-        "kind": {"class": {}},
-        "attrs": {
-            "numero": {
-                "is": ["pk"],
-                "description": "Numéro de département",
-                "type": "character[]",
-                "domain": "Numéros de département"
-            },
-            "nom": {
-                "is": ["required", "unique"],
-                "type": "character[]",
-                "description": "Nom du département"
-            }
-        }
-    },
-    "commune": {
-        "description": "Une commune française",
-        "kind": {"class": {}},
-        "attrs": {
-            "code": {
-                "type": "integer",
-                "is": ["pk"],
-                "description": "Code INSEE de la commune"
-            },
-            "numero_departement": {
-                "type": "character[]",
-                "is": ["required"],
-                "domain": "Numéros de département",
-                "description": "Numéro de département de la commune"
-            },
-            "nom": {
-                "is": ["required"],
-                "type": "character[]",
-                "description": "Nom de la commune"
-            }
-        },
-        "references": {
-            "departement": {
-                "description": "Département de la commune",
-                "name": "departement"
-            }
-        }
-    },
-    "adresse": {
-        "kind": {"class": {}},
-        "attrs": {
-          "id": { "type": "serial", "is": ["pk"] },
-          "numero_voie": {
-            "type": "integer",
-            "description": "Numéro dans la voie",
-            "domain": {"min_incl": true, "min": "0"},
-            "constraints": ["Existe si complement_numero existe"],
-            "is": ["required"]
-          },
-          "complement_numero": {
-            "type": "character[]",
-            "description": "Complément au numéro dans la voie (B, T, Q, C)",
-            "constraints": ["N'existe pas si numero n'existe pas", "Longueur ≤ 10"]
-          },
-          "nom_voie": {"type": "character[]", "description": "Nom de la voie"},
-          "localite": {"type": "character[]", "description": "Hameau, lieu-dit... Chaîne vide pour aucun."},
-          "code_postal": { "type": "character[]", "description": "Code postal", "constraints": ["Longueur = 5"] },
-          "precision_int": {"type": "character[]", "description": "Précision interne (apt., Boîte à lettre, étage...)"},
-          "precision_ext": {"type": "character[]", "description": "Précision externe (bâtiment, voie, résidence...)"},
-          "lat": {
-            "type": "decimal",
-            "description": "Latitude",
-            "domain": "Latitude décimale",
-            "constraints": ["Existe avec long"]
-          },
-          "long": {
-            "type": "decimal",
-            "description": "Longitude",
-            "domain": "Longitude décimale",
-            "constraints": ["Existe avec lat"]
-          }
-        },
-        "references": {
-          "commune": {"description": "Commune où se trouve l'adresse"},
-          "offre"  : {"description": "Offre située à cette adresse"  },
-          "compte" : {"description": "Compte situé à cette adresse"  }
-        },
-        "description": "Adresse postale normalisée (AFNOR NF Z 10-011)."
-      },
-      "abonnement": {
-        "description": "Modèle d'abonnement pour professionnel",
-        "kind": {"class": {}},
-        "attrs": {
-          "libelle"        : { "type": "character[]", "description": "Libellé de l'abonnement", "is": ["pk"] }          ,
-          "prix_journalier": { "type": "decimal", "description": "Prix journalier de l'abonnement", "is": ["required"] },
-          "description"    : { "type": "character[]", "description": "description de l'abonnement", "is": ["required"] }
-        }
-      },
-      "image": {
-        "description": "Une image téléversée par un utilisateur",
-        "kind": {"class": {}},
-        "attrs": {
-            "id": {
-                "type": "serial",
-                "is": ["pk"]
-            },
-            "taille": {
-                "type": "integer",
-                "is": ["required"],
-                "description": "Taille en octets de l'image"
-            },
-            "mime_subtype": {
-                "type": "character[]",
-                "is": ["required"],
-                "description": "Sous-type MIME image/*"
-            },
-            "legende": {
-                "type": "character[]",
-                "description": "Légende"
-            }
-        }
-      },
-      "signalable": {
-        "kind": {"class": {"abstract": true}},
-        "description": "Un contenu pouvant être signalé",
-        "attrs": {
-            "id": {
-                "type": "serial",
-                "is": ["pk"]
-            }
-        }
+    "avis": {
+      "kind": {"class": {"inherits": "signalable"}},
+      "attrs": {
+        "id": {"type": "integer", "is": ["pk"]},
+        "commentaire": {"type": "character[]", "is": ["required"],"description": "Contenu de l'avis"},
+        "note":{"type":"integer","domain":{"min": "1","min_incl": true,"max":"5", "max_incl": true}, "description": "Note de l'avis"},
+        "publie_le":{"type":"timestamp","is": ["required", {"default": "localtimestamp (maintenant)"}], "description": "Instant de publication de l'avis"},
+        "date_experience":{"type": "timestamp", "description": "Date de l'expérience de l'auteur"},
+        "contexte":{"type": "character[]", "description": "Contexte de l'expérience", "remarks": "Une sélection de contextes par défaut est disponibles sur le site mais la BDD supporte les contextes personnalisés"},
+        "lu": {"type": "boolean", "description": "Si cet avis a été lu par le professionnel propriétaire de l'offre qu'il commente"}
       }
+    }
   },
   "tchattator": {
     "test": {
