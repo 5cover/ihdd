@@ -10,7 +10,7 @@ import QualifiedName from "./QualifiedName";
 // todo: composed pk
 // todo: prefefiend domains
 // todo: auto add references for associations
-// todo: check validity of entity names in in associations>left/right, inherits, references>to, + support interschema references (parse as Schema.Name notation, if it doesn't have a schema, consider the current schema)
+// todo: check validity of entity names in in associations>left/right, inherits, references>to
 
 const inputFile = requireElementById('input-file') as HTMLInputElement;
 const buttonClearFile = requireElementById('button-clear-file') as HTMLButtonElement;
@@ -61,25 +61,26 @@ buttonGenerate.addEventListener('click', () => void (async () => {
     buttonGenerate.disabled = true;
     try {
         pError.textContent = null;
-        let dd: unknown;
-        try {
-            dd = JSON.parse(await getDataDictionary());
-        } catch (e) {
-            if (e instanceof Error) throwError(e.message);
-            throw e;
-        }
+        const dd = await getDataDictionary();
+        if (!isObject(dd)) throwError();
+
+        function parseQualifiedName(qualifiedName: string, fallbackSchemaName: string) {
+            const ql = QualifiedName.parse(qualifiedName, fallbackSchemaName);
+            const schema = (dd as Record<string, unknown>)[ql.schemaName];
+            if (!isObject(schema) || !(ql.relationName in schema)) {
+                throwError(`invalid reference: ${qualifiedName} (${ql.format()})`)
+            }
+            return ql;
+        };
 
         const wb = XLSX.utils.book_new();
 
-        if (!isObject(dd)) throwError();
-        for (const [inSchemaName, schema] of Object.entries(dd)) {
+        for (const [schemaName, schema] of Object.entries(dd)) {
             if (!isObject(schema)) throwError();
 
-            const schemaName = pascalize(inSchemaName);
-            for (const [inRelationName, relation] of Object.entries(schema).sort(([a,], [b,]) => a.localeCompare(b))) {
+            for (const [relationName, relation] of Object.entries(schema).sort(([a,], [b,]) => a.localeCompare(b))) {
                 if (!isObject(relation)) throwError();
 
-                const relationName = pascalize(inRelationName);
                 const kind = decodeKind(value(relation, 'kind', isObject) ?? throwError());
 
                 const data = [
@@ -90,7 +91,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                     )],
                     [textCell(kind.name, style.kind), ...(kind.inherits ? [
                         textCell('Hérite de', style.kindRight),
-                        sheetLinkCell(QualifiedName.parse(pascalize(kind.inherits), schemaName).format(), style.kind)] : [])],
+                        sheetLinkCell(parseQualifiedName(kind.inherits, schemaName).format(), style.kind)] : [])],
                     attributeTableColumns.map(c => textCell(c.name, style.th)),
                     attributeTableColumns.map(c => c.desc ? textCell(c.desc, style.thDesc) : emptyCell(style.thDesc)),
                     ...Object.entries(value(relation, 'attrs', isObject) ?? throwError())
@@ -151,7 +152,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                         ...refs.map(ref => {
                             if (!isObject(ref)) throwError();
                             return [
-                                sheetLinkCell(QualifiedName.parse(pascalize(value(ref, 'to', isString) ?? throwError()), schemaName).format(), style.td),
+                                sheetLinkCell(parseQualifiedName(value(ref, 'to', isString) ?? throwError(), schemaName).format(), style.td),
                                 textCell(value(ref, 'description', isString) ?? '', style.td),
                                 textCell(value(ref, 'name', isString) ?? '', style.td), // todo: have some way to signal that this is a link
                                 textCell(value(ref, 'qualifier', isString) ?? '', style.td),
@@ -174,6 +175,25 @@ buttonGenerate.addEventListener('click', () => void (async () => {
 
 requireElementById('button-pascalize').addEventListener('click', () => inputPascalizedText.value = pascalize(inputTextToPascalize.value));
 
+async function getDataDictionary(): Promise<unknown> {
+    let dds;
+    if (textareaInput.value) {
+        dds = textareaInput.value;
+    }
+    else {
+        const f = inputFile.files?.item(0);
+        if (f) dds = await f.text();
+        else throwError('no data');
+    }
+
+    try {
+        return JSON.parse(dds);
+    } catch (e) {
+        if (e instanceof Error) throwError(e.message);
+        throw e;
+    }
+}
+
 // "Update" function
 
 function updateButtonGenerateDisabled() {
@@ -181,17 +201,6 @@ function updateButtonGenerateDisabled() {
 }
 
 // Utility functions
-
-async function getDataDictionary(): Promise<string> {
-    if (textareaInput.value) {
-        return textareaInput.value;
-    }
-    const f = inputFile.files?.item(0);
-    if (f) {
-        return await f.text();
-    }
-    throwError('no data');
-}
 
 function decodeKind(kind: object): {
     abstract: boolean,

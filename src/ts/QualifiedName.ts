@@ -1,3 +1,5 @@
+import { pascalize } from "./util";
+
 export default class QualifiedName {
     schemaName: string;
     relationName: string;
@@ -17,6 +19,6 @@ export default class QualifiedName {
     }
 
     format() {
-        return `${this.schemaName}.${this.relationName}`;
+        return `${pascalize(this.schemaName)}.${pascalize(this.relationName)}`;
     }
 }

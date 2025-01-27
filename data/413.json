@@ -268,7 +268,7 @@
       "kind": { "class": {"abstract": true} },
       "references": [
         {
-          "to"         : "prive"                                                     ,
+          "to"         : "privé"                                                     ,
           "description": "Professionnel privé auquel ce moyen de paiement appartient",
           "name"       : "moyens de paiement"                                        ,
           "qualifier"  : "siren"
