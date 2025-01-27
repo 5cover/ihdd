@@ -1,8 +1,9 @@
 import * as XLSX from "xlsx-js-style";
-import { requireElementById, pascalize, isIdentifier, isObject, isString, isBool, isArray, isStringOrObject } from "./util";
+import { requireElementById, pascalize } from "./util";
 import { emptyCell, style, sheet_styleRowsAndColumns, textCell, sheetLinkCell } from "./style";
 import { EXAMPLE_FILE_URL, attributeTableColumns, referencesTableColumns } from "./const";
 import QualifiedName from "./QualifiedName";
+import { DataDictionary, Domain, Kind, Trait } from "./types";
 
 // Element retrievals
 // If an element is only used once, it is acceptable not to put in a constant if it is retrieved immediately (so we get an error immediately if the id is not found)
@@ -62,59 +63,52 @@ buttonGenerate.addEventListener('click', () => void (async () => {
     try {
         pError.textContent = null;
         const dd = await getDataDictionary();
-        if (!isObject(dd)) throwError();
 
         function parseQualifiedName(qualifiedName: string, fallbackSchemaName: string) {
-            const ql = QualifiedName.parse(qualifiedName, fallbackSchemaName);
-            const schema = (dd as Record<string, unknown>)[ql.schemaName];
-            if (!isObject(schema) || !(ql.relationName in schema)) {
-                throwError(`invalid reference: ${qualifiedName} (${ql.format()})`)
+            const qualName = QualifiedName.parse(qualifiedName, fallbackSchemaName);
+            const schema = dd[qualName.schemaName];
+            if (schema === undefined || schema[qualName.relationName] === undefined) {
+                throwError(`invalid reference: ${qualifiedName} (${qualName.format()})`);
             }
-            return ql;
+            return qualName;
         };
 
         const wb = XLSX.utils.book_new();
 
         for (const [schemaName, schema] of Object.entries(dd)) {
-            if (!isObject(schema)) throwError();
-
             for (const [relationName, relation] of Object.entries(schema).sort(([a,], [b,]) => a.localeCompare(b))) {
-                if (!isObject(relation)) throwError();
+                const qualName = new QualifiedName(schemaName, relationName).format();
 
-                const kind = decodeKind(value(relation, 'kind', isObject) ?? throwError());
+                const kind = decodeKind(relation.kind) ?? throwError('could not decode kind in ' + qualName);
 
                 const data = [
                     [textCell('Dictionnaire des Données', style.h1)],
-                    [textCell(
-                        new QualifiedName(schemaName, relationName).format(),
-                        kind.abstract ? style.fullNameAbstract : style.fullName,
+                    [textCell(qualName, kind.abstract ? style.fullNameAbstract : style.fullName,
                     )],
                     [textCell(kind.name, style.kind), ...(kind.inherits ? [
                         textCell('Hérite de', style.kindRight),
                         sheetLinkCell(parseQualifiedName(kind.inherits, schemaName).format(), style.kind)] : [])],
                     attributeTableColumns.map(c => textCell(c.name, style.th)),
                     attributeTableColumns.map(c => c.desc ? textCell(c.desc, style.thDesc) : emptyCell(style.thDesc)),
-                    ...Object.entries(value(relation, 'attrs', isObject) ?? throwError())
+                    ...Object.entries(relation.attrs)
                         .sort(([, attrA], [, attrB]) => {
-                            if (!isObject(attrA) || !isObject(attrB)) throwError();
-                            const isA = value(attrA, 'is', isArray) ?? [];
-                            const isB = value(attrB, 'is', isArray) ?? [];
+                            const isA = attrA.is ?? [];
+                            const isB = attrB.is ?? [];
                             return +isRequired(isB) - +isRequired(isA);
                         })
                         .map(([attrName, attr]) => {
-                            if (!isObject(attr)) throwError();
-                            const is = value(attr, 'is', isArray) ?? [];
+                            const is = attr.is ?? [];
                             const computedBy = isComputed(is);
-                            const constraints = value(attr, 'constraints', isArray)?.join('\n') ?? '';
-                            const remarks = [value(attr, 'remarks', isString)];
+                            const constraints = attr.constraints?.join('\n') ?? '';
+                            const remarks = attr.remarks === undefined ? [] : [attr.remarks];
                             if (is.includes('pk')) remarks.push('Clé primaire');
                             if (is.includes('unique')) remarks.push('Unqiue');
                             return [
                                 textCell(attrName, style.td),
-                                textCell(value(attr, 'description', isString) ?? '', style.td),
-                                textCell(value(attr, 'type', isString) ?? throwError(), style.td),
+                                textCell(attr.description ?? '', style.td),
+                                textCell(attr.type ?? throwError(), style.td),
                                 textCell(computedBy ? 'Déduite/calculée' : 'Élémentaire', style.td),
-                                textCell(decodeDomain(value(attr, 'domain', isStringOrObject) ?? ''), style.td),
+                                textCell(decodeDomain(attr.domain ?? ''), style.td),
                                 textCell(isDefaultValue(is) ?? '', style.td),
                                 textCell(isRequired(is) ? 'Oui' : 'Non', style.td),
                                 textCell(computedBy ? computedBy + '\n' + constraints : constraints, style.td),
@@ -129,19 +123,18 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                 ];
 
 
-                const desc = value(relation, 'description', isString);
-                if (desc) {
+                if (relation.description) {
                     data.push(
                         [],
                         [textCell('Description', style.h3)],
-                        [textCell(desc, style.description)],
+                        [textCell(relation.description, style.description)],
                     );
                     merges.push(
                         { s: { r: data.length - 1, c: 0 }, e: { r: data.length - 1, c: 8 } }
                     );
                 }
 
-                const refs = value(relation, 'references', isArray) ?? [];
+                const refs = relation.references ?? [];
                 // todo.. union opposite references (all relations that reference this one)
                 if (refs.length > 0) {
                     data.push(
@@ -149,25 +142,25 @@ buttonGenerate.addEventListener('click', () => void (async () => {
                         [textCell('Navigation', style.h3)],
                         referencesTableColumns.map(c => textCell(c.name, style.th)),
                         referencesTableColumns.map(c => c.desc ? textCell(c.desc, style.thDesc) : emptyCell(style.thDesc)),
-                        ...refs.map(ref => {
-                            if (!isObject(ref)) throwError();
-                            return [
-                                sheetLinkCell(parseQualifiedName(value(ref, 'to', isString) ?? throwError(), schemaName).format(), style.td),
-                                textCell(value(ref, 'description', isString) ?? '', style.td),
-                                textCell(value(ref, 'name', isString) ?? '', style.td), // todo: have some way to signal that this is a link
-                                textCell(value(ref, 'qualifier', isString) ?? '', style.td),
-                            ];
-                        }),
+                        ...refs.map(ref => [
+                            sheetLinkCell(parseQualifiedName(ref.to, schemaName).format(), style.td),
+                            textCell(ref.description ?? '', style.td),
+                            textCell(ref.name ?? '', style.td), // todo: have some way to signal that this is a link
+                            textCell(ref.qualifier ?? '', style.td),
+                        ]),
                     );
                 }
 
                 const ws = XLSX.utils.aoa_to_sheet(data, { WTF: true });
                 ws['!merges'] = merges;
                 sheet_styleRowsAndColumns(ws);
-                XLSX.utils.book_append_sheet(wb, ws, new QualifiedName(schemaName, relationName).format());
+                XLSX.utils.book_append_sheet(wb, ws, qualName);
             }
         }
         XLSX.writeFile(wb, 'data dictionary.xlsx');
+    } catch (e) {
+        if (e instanceof Error) setError(e.message);
+        throw e;
     } finally {
         buttonGenerate.disabled = false;
     }
@@ -175,7 +168,7 @@ buttonGenerate.addEventListener('click', () => void (async () => {
 
 requireElementById('button-pascalize').addEventListener('click', () => inputPascalizedText.value = pascalize(inputTextToPascalize.value));
 
-async function getDataDictionary(): Promise<unknown> {
+async function getDataDictionary(): Promise<DataDictionary> {
     let dds;
     if (textareaInput.value) {
         dds = textareaInput.value;
@@ -186,12 +179,7 @@ async function getDataDictionary(): Promise<unknown> {
         else throwError('no data');
     }
 
-    try {
-        return JSON.parse(dds);
-    } catch (e) {
-        if (e instanceof Error) throwError(e.message);
-        throw e;
-    }
+    return JSON.parse(dds) as DataDictionary;
 }
 
 // "Update" function
@@ -202,72 +190,60 @@ function updateButtonGenerateDisabled() {
 
 // Utility functions
 
-function decodeKind(kind: object): {
+function decodeKind(kind: Kind): {
     abstract: boolean,
     name: string,
     inherits?: string;
-} {
-    const [k, v] = Object.entries(kind)[0] as [string, unknown] ?? throwError();
-    if (!isObject(v)) throwError();
-    switch (k) {
-        case 'association': {
-            return {
-                abstract: false,
-                name: `Classe d'association entre ${value(v, 'left', isIdentifier) ?? throwError()} et ${value(v, 'right', isIdentifier) ?? throwError()}`
-            };
-        } case 'class': {
-            const abstract = value(v, 'abstract', isBool) ?? false;
-            return {
-                abstract,
-                name: 'Classe' + (abstract ? ' abstraite' : ''),
-                inherits: value(v, 'inherits', isString),
-            };
-        }
-        default:
-            throwError();
+} | undefined {
+    if (kind.association !== undefined) {
+        return {
+            abstract: false,
+            name: `Classe d'association entre ${kind.association.left} et ${kind.association.right}`
+        };
+    } else if (kind.class !== undefined) {
+        const abstract = kind.class.abstract ?? false;
+        return {
+            abstract,
+            name: 'Classe' + (abstract ? ' abstraite' : ''),
+            inherits: kind.class.inherits,
+        };
     }
+
+    return undefined;
 }
 
-function decodeDomain(domain: string | object) {
+function decodeDomain(domain: Domain) {
     if (typeof domain === 'string') return domain;
     const inf = '\u221E';
-    const minIncl = value(domain, 'min_incl', isBool) ? '[' : ']',
-        min = value(domain, 'min', isString) ?? inf,
-        max = value(domain, 'max', isString) ?? inf,
-        maxIncl = value(domain, 'max_incl', isBool) ? ']' : '[';
+    const minIncl = domain.min_incl ? '[' : ']',
+        min = domain.min ?? inf,
+        max = domain.max ?? inf,
+        maxIncl = domain.max_incl ? ']' : '[';
     return minIncl + min + ';' + max + maxIncl;
 }
 
-function isRequired(is: unknown[]) {
+function isRequired(is: Trait[]) {
     return is.includes('required') || is.includes('pk');
 }
 
-function isComputed(is: unknown[]): string | undefined {
+function isComputed(is: Trait[]): string | undefined {
     for (const trait of is) {
-        if (!isObject(trait)) continue;
-        const v = value(trait, 'computed', isString);
-        if (v) return v;
+        if (typeof trait === 'object' && 'computed' in trait) return trait.computed;
     }
     return undefined;
 }
 
-function isDefaultValue(is: unknown[]): string | undefined {
+function isDefaultValue(is: Trait[]): string | undefined {
     for (const trait of is) {
-        if (!isObject(trait)) continue;
-        const v = value(trait, 'default', isString);
-        if (v) return v;
-    }
-    return undefined;
-}
-
-function value<K extends string, V>(obj: object, key: K, guard: (v: unknown) => v is V): V | undefined {
-    if (key in obj) {
-        const v = (obj as Record<K, unknown>)[key];
-        return guard(v) ? v : throwError();
+        if (typeof trait === 'object' && 'default' in trait) return trait.default;
     }
     return undefined;
 }
 
 function throwError(msg?: string): never {
-    throw new Error(pError.textContent = 'invalid data dictionary: ' + (msg ?? 'match input against JSON schema for details'));
+    throw new Error(msg);
+}
+
+function setError(msg?: string) {
+    pError.textContent = 'invalid data dictionary: ' + (msg ?? 'match input against JSON schema for details');
 }
