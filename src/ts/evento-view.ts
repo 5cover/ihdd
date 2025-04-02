@@ -60,6 +60,6 @@ function make_pie(total: Answer) {
 }
 
 async function fetch_poll_results() {
-    const url = 'ihdd/data/survey_65x4qkp9_results.json';
+    const url = '/ihdd/data/survey_65x4qkp9_results.json';
     return await (await fetch(url)).json() as Record<string, Answer>;
 }
