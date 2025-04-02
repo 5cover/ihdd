@@ -47,7 +47,7 @@ final class Page
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= SITE_NAME ?> &ndash; <?= h14s($this->title) ?></title>
+    <title><?= h14s($this->title) ?></title>
     <?php
     foreach (array_merge(self::BASE_STYLESHEETS, $this->stylesheets) as $href) {
         ?><link rel="stylesheet" href="<?= SITE_BASE_URL ?>/css/<?= $href ?>"><?php

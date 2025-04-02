@@ -3,11 +3,11 @@
 require_once 'Page.php';
 require_once 'const.php';
 
-$page = new Page('Evento Renater Viewer', ['evento-view.css'], ['evento-view.js']);
+$page = new Page('Parcours BUT3', ['evento-view.css'], ['evento-view.js']);
 
 $page->put(function() {
 ?>
-<h1>Evento renater viewer</h1>
+<h1>Sondage choix de parcours BUT3</h1>
 <h2>Camembert</h2>
 <canvas id="canvas-pie"></canvas>
 <h2>Pensées des Étudiants</h2>
