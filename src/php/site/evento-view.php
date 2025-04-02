@@ -17,7 +17,7 @@ $page->put(<<<HTML
             <div class="details"></div>
         </article>
         <article class="stat-widget" id="sw-avg-comment-length">
-            <h3 class="title">Taille de penséee moyenne</h3>
+            <h3 class="title">Taille de pensée moyenne</h3>
             <div class="summary"></div>
             <div class="details"></div>
         </article>
