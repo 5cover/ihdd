@@ -1,3 +1,4 @@
+import StatWidget from "./StatWidet";
 import { get_class, requireElementById } from "./util";
 import Chart from 'chart.js/auto';
 
@@ -7,7 +8,10 @@ const template = requireElementById("template-special-mention") as HTMLTemplateE
 
 const but3 = await fetch_poll_results();
 
+let n_participants = 0;
+const comments = [];
 for (const answer of Object.values(but3)) {
+    ++n_participants;
     if (answer["Nom du participant"] === "Les \"Oui\"") {
         make_pie(answer);
         continue;
@@ -16,6 +20,7 @@ for (const answer of Object.values(but3)) {
     const choice = response["PARCOURS A"] === 1 ? "Parcours A" : response["PARCOURS C"] === 1 ? "Parcours C" : "inconnu";
     const comment = response.Commentaire;
     if (comment) {
+        comments.push(comment);
         const item = (template.content.cloneNode(true) as HTMLElement).firstElementChild as HTMLLIElement;
         get_class(item, 'name').textContent = answer["Nom du participant"];
         get_class(item, 'comment').textContent = comment;
@@ -23,6 +28,9 @@ for (const answer of Object.values(but3)) {
         list_special_mentions.appendChild(item);
     }
 }
+
+new StatWidget(requireElementById('sw-comments-by-participants')).setPercentage(comments.length, n_participants);
+new StatWidget(requireElementById('sw-avg-comment-length')).setMinMaxAvg(comments.map(c => c.length));
 
 interface Answer {
     "Nom du participant": string,
