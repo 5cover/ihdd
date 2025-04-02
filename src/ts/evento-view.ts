@@ -19,12 +19,12 @@ function render(but3: Record<string, Answer>) {
     const comments = [];
     list_special_mentions.replaceChildren();
     for (const answer of Object.values(but3)) {
-        ++n_participants;
         if (answer["Nom du participant"] === "Les \"Oui\"") {
             if (chart_pie !== null) chart_pie.destroy();
             chart_pie = make_pie(answer);
             continue;
         }
+        ++n_participants;
         const response = answer["Veuillez valider votre parcours:"];
         const choice = response["PARCOURS A"] === 1 ? "Parcours A" : response["PARCOURS C"] === 1 ? "Parcours C" : "inconnu";
         const comment = response.Commentaire;
