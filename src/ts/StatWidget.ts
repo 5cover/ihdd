@@ -30,7 +30,7 @@ export default class StatWidget {
     }
 
     setPercentage(partial: number, total: number) {
-        this.summaryEl.textContent = `${(partial / total).toPrecision(2)}%`;
+        this.summaryEl.textContent = `${(partial / total * 100).toPrecision(2)}%`;
         this.detailsEl.textContent = `${partial}/${total}`;
         this.adjustAbsoluteValuesWidth();
     }
