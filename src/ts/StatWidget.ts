@@ -1,3 +1,5 @@
+import { isWhitespace } from "./util";
+
 export default class StatWidget {
     container: HTMLElement;
     summaryEl: HTMLElement;
@@ -32,11 +34,37 @@ export default class StatWidget {
         this.detailsEl.textContent = `${partial}/${total}`;
         this.adjustAbsoluteValuesWidth();
     }
-    
+
     setMinMaxAvg(values: number[]) {
         const sum = values.reduce((a, b) => a + b);
         this.summaryEl.textContent = (sum / values.length).toPrecision(2);
         this.detailsEl.textContent = `${Math.min(...values)}..${Math.max(...values)}`;
+        this.adjustAbsoluteValuesWidth();
+    }
+
+    setModeByChar(values: string[]) {
+        const frequencyMap: Record<string, number> = {};
+
+        // Count characters
+        for (const str of values) {
+            for (const char of str) {
+                if (!isWhitespace(char)) frequencyMap[char] = (frequencyMap[char] || 0) + 1;
+            }
+        }
+
+        // Find the character with the highest count
+        let maxChar: string | null = null;
+        let maxCount = 0;
+
+        for (const [char, count] of Object.entries(frequencyMap)) {
+            if (count > maxCount) {
+                maxCount = count;
+                maxChar = char;
+            }
+        }
+
+        this.summaryEl.textContent = maxChar;
+        this.detailsEl.textContent = `${maxCount} fois`;
         this.adjustAbsoluteValuesWidth();
     }
 }

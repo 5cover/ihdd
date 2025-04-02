@@ -1,4 +1,4 @@
-import StatWidget from "./StatWidet";
+import StatWidget from "./StatWidget";
 import { get_class, requireElementById } from "./util";
 import Chart from 'chart.js/auto';
 
@@ -31,6 +31,7 @@ for (const answer of Object.values(but3)) {
 
 new StatWidget(requireElementById('sw-comments-by-participants')).setPercentage(comments.length, n_participants);
 new StatWidget(requireElementById('sw-avg-comment-length')).setMinMaxAvg(comments.map(c => c.length));
+new StatWidget(requireElementById('sw-mode-comment-letters')).setModeByChar(comments);
 
 interface Answer {
     "Nom du participant": string,

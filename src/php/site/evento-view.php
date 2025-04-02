@@ -21,6 +21,11 @@ $page->put(<<<HTML
             <div class="summary"></div>
             <div class="details"></div>
         </article>
+        <article class="stat-widget" id="sw-mode-comment-letters">
+            <h3 class="title">Lettre la plus pensée</h3>
+            <div class="summary"></div>
+            <div class="details"></div>
+        </article>
     </div>
 </section>
 <h2>Pensées des Étudiants</h2>
