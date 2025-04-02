@@ -5,14 +5,13 @@ const canvas_pie = requireElementById('canvas-pie') as HTMLCanvasElement;
 const list_special_mentions = requireElementById('list-special-mentions') as HTMLUListElement;
 const template = requireElementById("template-special-mention") as HTMLTemplateElement;
 
-const lesOuiKey = '13651109';
-
 const but3 = await fetch_poll_results();
 
-make_pie(but3[lesOuiKey]!);
-delete but3[lesOuiKey];
-
 for (const answer of Object.values(but3)) {
+    if (answer["Nom du participant"] === "Les \"Oui\"") {
+        make_pie(answer);
+        continue;
+    }
     const response = answer["Veuillez valider votre parcours:"];
     const choice = response["PARCOURS A"] === 1 ? "Parcours A" : response["PARCOURS C"] === 1 ? "Parcours C" : "inconnu";
     const comment = response.Commentaire;
