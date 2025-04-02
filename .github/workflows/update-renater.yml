@@ -14,13 +14,13 @@ jobs:
 
       - name: Fetch Evento JSON
         run: |
-          curl -s "https://evento.renater.fr/rest.php/survey/65x4qkp9/results?format=download:json:;&tz=Europe%2FParis" -o /docs/data/survey_65x4qkp9_results.json
+          curl -s "https://evento.renater.fr/rest.php/survey/65x4qkp9/results?format=download:json:;&tz=Europe%2FParis" -o docs/data/survey_65x4qkp9_results.json
 
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/data.json
+          git add docs/data/survey_65x4qkp9_results.json
           git diff --cached --quiet || git commit -m "Update data.json from Evento"
           git push --force-with-lease
         env:
