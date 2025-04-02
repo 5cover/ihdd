@@ -2,9 +2,12 @@ import * as path from 'path';
 
 /** @var {import('webpack').Configuration} */
 const cfg = {
-    entry: './src/ts/index.ts',
+    entry: {
+        ihdd: './src/ts/ihdd.ts',
+        'evento-view': './src/ts/evento-view.ts',
+    },
     output: {
-        filename: 'index.js',
+        filename: '[name].js',
         path: path.resolve('docs/js'),
     },
     mode: 'development',

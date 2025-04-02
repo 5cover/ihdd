@@ -2,7 +2,7 @@
 require_once 'Page.php';
 require_once 'const.php';
 
-$page = new Page('Home', scripts: ['index.js']);
+$page = new Page('Home', scripts: ['ihdd.js']);
 $page->put(function () {
 ?>
 <h1><?= h14s(SITE_NAME) ?></h1>
