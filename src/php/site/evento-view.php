@@ -10,7 +10,7 @@ $page->put(function() {
 <h1>Evento renater viewer</h1>
 <h2>Camembert</h2>
 <canvas id="canvas-pie"></canvas>
-<h2>Mentions spéciales</h2>
+<h2>Pensées des Étudiants</h2>
 <ul id="list-special-mentions"></ul>
 <template id="template-special-mention">
     <li>
