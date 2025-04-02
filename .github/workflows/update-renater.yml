@@ -1,4 +1,6 @@
 name: Update Evento Data
+permissions:
+  contents: write
 
 on:
   schedule:
