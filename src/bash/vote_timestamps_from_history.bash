@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eux
+set -eu
 
 vote_file="$1"
 del=:
@@ -29,8 +29,6 @@ for commit in $(git log --reverse --format="%at$del%H" -- "$vote_file"); do
         fi
     done
 done
-
-set -x
 
 for i in "${!known_keys[@]}"; do
     echo "$i"
