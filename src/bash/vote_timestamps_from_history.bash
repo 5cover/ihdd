@@ -5,6 +5,9 @@ set -eux
 vote_file="$1"
 del=:
 
+repo_root=$(git rev-parse --show-toplevel)
+vote_file_rel=$(realpath --relative-to="$repo_root" "$1")
+
 declare -A known_keys
 
 f_current=$(mktemp)
@@ -15,7 +18,7 @@ for commit in $(git log --reverse --format="%at$del%H" -- "$vote_file"); do
     sha=$(cut -d$del -f2 <<<"$commit")
 
     # Extract JSON from this commit
-    git show "$sha:$vote_file" >"$f_current" 2>/dev/null || continue
+    git show "$sha:$vote_file_rel" >"$f_current" 2>/dev/null || continue
 
     # Extract keys from the current state
     new_keys=$(jq -r 'keys_unsorted[]' "$f_current")
