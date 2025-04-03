@@ -5,8 +5,7 @@ set -eux
 vote_file="$1"
 del=:
 
-repo_root=$(git rev-parse --show-toplevel)
-vote_file_rel=$(realpath --relative-to="$repo_root" "$1")
+vote_file_rel=$(realpath --relative-to="$(git rev-parse --show-toplevel)" "$vote_file")
 
 declare -A known_keys
 
