@@ -30,7 +30,7 @@ jobs:
 
       - name: Update vote timestamps
         run: |
-          ${{ github.workspace }}/src/bash/update_vote_timestamps.bash "$F_RESULTS" "$F_TIMESTAMPS"
+          bash ${{ github.workspace }}/src/bash/update_vote_timestamps.bash "$F_RESULTS" "$F_TIMESTAMPS"
 
       - name: Commit and push if changed
         run: |
