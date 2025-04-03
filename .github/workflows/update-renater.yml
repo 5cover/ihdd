@@ -8,8 +8,8 @@ on:
   workflow_dispatch:       # Allow manual trigger
 
 env:
-  F_RESULTS: docs/data/survey_65x4qkp9_results.json
-  F_TIMESTAMPS: docs/data/survey_65x4qkp9_timestamps.json
+  F_RESULTS: ${{ github.workspace }}/docs/data/survey_65x4qkp9_results.json
+  F_TIMESTAMPS: ${{ github.workspace }}/docs/data/survey_65x4qkp9_timestamps.json
 
 jobs:
   fetch-json:
@@ -28,7 +28,7 @@ jobs:
 
       - name: Update vote timestamps
         run: |
-          "$GITHUB_WORKSPACE"/src/bash/update_vote_timestamps.bash "$F_RESULTS" "$F_TIMESTAMPS"
+          ${{ github.workspace }}/src/bash/update_vote_timestamps.bash "$F_RESULTS" "$F_TIMESTAMPS"
 
       - name: Commit and push if changed
         run: |
