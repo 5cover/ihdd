@@ -39,5 +39,28 @@ export function isWhitespace(c: string) {
         || c === '\u202f'
         || c === '\u205f'
         || c === '\u3000'
-        || c === '\ufeff'
+        || c === '\ufeff';
+}
+
+export function time_ago(ts: number): string {
+    const delta = Math.floor((Date.now() / 1000 - ts));
+    if (delta < 60) return "maintenant";
+    if (delta < 3600) {
+        const mn = Math.floor(delta / 60);
+        return 'il y a ' + quantify(mn, 'minute');
+    };
+    if (delta < 86400) {
+        const hr = Math.floor(delta / 3600);
+        return 'il y a ' + quantify(hr, 'heure');
+    };
+    const jr = Math.floor(delta / 86400);
+    return 'il y a ' + quantify(jr, 'jour');
+}
+
+export function quantify(quantity: number, singular: string) {
+    return `${quantity} ${quantity === 1 ? singular : singular + 's'}`;
+}
+
+export async function fetch_json(url: string): Promise<unknown> {
+    return await (await fetch(url)).json();
 }

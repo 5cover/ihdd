@@ -1,6 +1,16 @@
-// Global base styles
+h1 {
+    font-size: 2.5em;
+    text-align: center;
+    color: #222;
+}
+
+h2 {
+    font-size: 1.5em;
+    color: #444;
+    text-align: center;
+}
+
 body {
-    margin: 0;
     padding: 0;
     font-family: 'Helvetica Neue', Arial, sans-serif;
     background: #f8f8f8;
@@ -51,25 +61,8 @@ header {
 }
 
 main {
-    padding: 2em;
-    max-width: 800px;
-    margin: 2em auto;
-
-    h1 {
-        font-size: 2.5em;
-        margin-bottom: 0.5em;
-        text-align: center;
-        color: #222;
-    }
-
-    h2 {
-        font-size: 1.5em;
-        margin-top: 2em;
-        margin-bottom: 0.5em;
-        color: #444;
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 0.25em;
-    }
+    padding: 1em;
+    margin: 1em auto;
 }
 
 footer {
@@ -90,16 +83,18 @@ footer {
     }
 }
 
-.section-row {
+blockquote {
+    margin: 0;
+    padding: 0;
+    font-style: italic;
+    color: #555;
+}
+
+#stats {
     display: flex;
     gap: 1em;
     flex-wrap: wrap;
-}
-
-.section-col {
-    display: flex;
-    flex-direction: column;
-    gap: 1em;
+    justify-content: center;
 }
 
 .stat-widget {
@@ -133,11 +128,17 @@ footer {
     }
 }
 
+.fullwidth {
+    flex-direction: row;
+}
+
 // Styling the pie chart with a nod to life's circular absurdity
 #canvas-pie {
     margin: 1em auto;
     display: block;
     background: #fafafa;
+    min-width: 15em;
+    min-height: 15em;
     max-width: 20em;
     max-height: 20em;
 }
@@ -152,13 +153,6 @@ footer {
         border-left: 5px solid #666;
         box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
 
-        blockquote {
-            margin: 0;
-            padding: 0;
-            font-style: italic;
-            color: #555;
-        }
-
         .comment {
             margin-bottom: 0.5em;
         }
@@ -170,5 +164,92 @@ footer {
         .choice {
             color: #888;
         }
+    }
+}
+
+#list-recent-votes {
+    list-style: none;
+    aspect-ratio: 1 / 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10em, 1fr));
+    gap: 1em;
+    padding: 1em;
+    overflow: auto;
+
+    li {
+        &.tall {
+            grid-row-end: span 2;
+        }
+
+        break-inside: avoid-column;
+        flex: 0 0 auto;
+        margin-right: 1rem;
+        padding: 0.5rem 1rem;
+        background-color: #ffffff;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+
+        /* Add a playful hover effect */
+        &:hover {
+            transform: scale(1.05);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        p {
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .date {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .cursus {
+            font-style: italic;
+        }
+    }
+}
+
+// PAGE LAYOUT
+@media screen and (min-width: 800px) {
+    main {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        
+        gap: 1em;
+        > :not(h1) {
+            border: 1px solid #ccc;
+        }
+    }
+}
+
+h1 {
+    display: block;
+    grid-column: 1 / -1;
+}
+
+.bottom-left,
+.top-left {
+    grid-column: 1;
+}
+
+.bottom-right,
+.top-right {
+    grid-column: 2;
+}
+
+.bottom-left,
+.bottom-right {
+    grid-row: 3;
+
+    ul {
+        max-height: 60em;
+        overflow-y: auto;
     }
 }
