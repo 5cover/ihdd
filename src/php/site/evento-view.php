@@ -60,4 +60,4 @@ $page->put(<<<HTML
         <blockquote class="comment"></blockquote>
     </li>
 </template>
-HTML);
+HTML, put_footer: 'v1.1');

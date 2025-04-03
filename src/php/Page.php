@@ -26,7 +26,7 @@ final class Page
      * @param callable(): void|string $put_main
      * @return void
      */
-    function put(callable|string $put_main, callable|string|null $put_aside = null)
+    function put(callable|string $put_main, callable|string|null $put_aside = null, callable|string|null $put_footer = null)
     {
         ?>
 <!DOCTYPE html>
@@ -38,7 +38,13 @@ final class Page
     <?php if ($put_aside !== null) { ?>
     <aside><?php is_string($put_aside) ? (print $put_aside) : $put_aside() ?></aside>
     <?php } ?>
-    <?php $this->put_footer() ?>
+    <?php
+    if ($put_footer === null) {
+        $this->put_footer();
+    } else {
+        ?><footer><?php is_string($put_footer) ? (print $put_footer) : $put_footer() ?></footer><?php
+    }
+    ?>
 </body>
 </html>
 <?php
