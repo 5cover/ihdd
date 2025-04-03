@@ -42,6 +42,12 @@ export default class StatWidget {
         this.adjustAbsoluteValuesWidth();
     }
 
+    setCustom(summary: string, details: string) {
+        this.summaryEl.textContent = summary;
+        this.detailsEl.textContent = details;
+        this.adjustAbsoluteValuesWidth();
+    }
+
     setModeByChar(values: string[]) {
         const frequencyMap: Record<string, number> = {};
 

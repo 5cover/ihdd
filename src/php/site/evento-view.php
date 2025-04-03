@@ -29,6 +29,11 @@ $page->put(<<<HTML
                 <div class="summary"></div>
                 <div class="details"></div>
             </article>
+            <article class="stat-widget" id="sw-n-votes-today">
+                <h3 class="title">Nombres de votes aujourd'hui</h3>
+                <div class="summary"></div>
+                <div class="details"></div>
+            </article>
         </div>
 </section>
 <section class="bottom-right">
