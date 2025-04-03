@@ -26,7 +26,7 @@ jobs:
         run: |
           curl -s "https://evento.renater.fr/rest.php/survey/65x4qkp9/results?format=download:json:;&tz=Europe%2FParis" -o "$F_RESULTS"
 
-      - name: Update results
+      - name: Update vote timestamps
         run: src/bash/update_vote_timestamps "$F_RESULTS" "$F_TIMESTAMPS"
 
       - name: Commit and push if changed
