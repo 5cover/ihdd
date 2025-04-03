@@ -12,7 +12,7 @@ env:
   F_TIMESTAMPS: ${{ github.workspace }}/docs/data/survey_65x4qkp9_timestamps.json
 
 jobs:
-  fetch-json:
+  but3:
     runs-on: ubuntu-latest
     steps:
 
