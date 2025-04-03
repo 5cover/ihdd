@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Install jq
+      - name: Install deps
         run: sudo apt-get update && sudo apt-get install jq bash
 
       - name: Checkout repo
@@ -28,6 +28,10 @@ jobs:
         run: |
           curl -s "https://evento.renater.fr/rest.php/survey/65x4qkp9/results?format=download:json:;&tz=Europe%2FParis" -o "$F_RESULTS"
 
+      - name: Update vote timestamps
+        run: |
+          bash ${{ github.workspace }}/src/bash/vote_timestamps_from_history.bash "$F_RESULTS" > "$F_TIMESTAMPS"
+
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
@@ -37,7 +41,3 @@ jobs:
           git push --force-with-lease
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update vote timestamps
-        run: |
-          bash ${{ github.workspace }}/src/bash/vote_timestamps_from_history.bash "$F_RESULTS" > "$F_TIMESTAMPS"
