@@ -54,7 +54,7 @@ main {
     padding: 2em;
     max-width: 800px;
     margin: 2em auto;
-  
+
     h1 {
         font-size: 2.5em;
         margin-bottom: 0.5em;
@@ -69,54 +69,6 @@ main {
         color: #444;
         border-bottom: 1px solid #ccc;
         padding-bottom: 0.25em;
-    }
-
-    // Styling the pie chart with a nod to life's circular absurdity
-    #canvas-pie {
-        margin: 1em auto;
-        display: block;
-        background: #fafafa;
-        max-width: 20em;
-        max-height: 20em;
-    }
-
-    // Special mentions section
-    #list-special-mentions {
-        list-style: none;
-
-        li {
-            margin: 1em 0;
-            padding: 1em;
-            background: #fff;
-            border-left: 5px solid #666;
-            box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
-
-            blockquote {
-                margin: 0;
-                padding: 0;
-                font-style: italic;
-                color: #555;
-            }
-
-            .comment {
-                margin-bottom: 0.5em;
-            }
-
-            .name {
-                font-weight: bold;
-            }
-
-            .choice {
-                color: #888;
-            }
-        }
-    }
-
-    // Hide the template, but keep it styled for consistency when used
-    #template-special-mention {
-        li {
-            display: none;
-        }
     }
 }
 
@@ -141,6 +93,7 @@ footer {
 .section-row {
     display: flex;
     gap: 1em;
+    flex-wrap: wrap;
 }
 
 .section-col {
@@ -177,5 +130,45 @@ footer {
         margin: 0 auto;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+}
+
+// Styling the pie chart with a nod to life's circular absurdity
+#canvas-pie {
+    margin: 1em auto;
+    display: block;
+    background: #fafafa;
+    max-width: 20em;
+    max-height: 20em;
+}
+
+#list-special-mentions {
+    list-style: none;
+
+    li {
+        margin: 1em 0;
+        padding: 1em;
+        background: #fff;
+        border-left: 5px solid #666;
+        box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
+
+        blockquote {
+            margin: 0;
+            padding: 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        .comment {
+            margin-bottom: 0.5em;
+        }
+
+        .name {
+            font-weight: bold;
+        }
+
+        .choice {
+            color: #888;
+        }
     }
 }
