@@ -42,6 +42,7 @@ $page->put(<<<HTML
 </section>
 <section class="bottom-left">
     <h2>Votes Récents</h2>
+    <small id="petit-tips">Petit <em>tips</em>&nbsp;: passer la souris sur la date pour la voir en absolu.</small>
     <ul id="list-recent-votes"></ul>
 </section>
 
@@ -60,4 +61,7 @@ $page->put(<<<HTML
         <blockquote class="comment"></blockquote>
     </li>
 </template>
-HTML, put_footer: 'v1.1');
+HTML, put_footer: <<<HTML
+v1.1 &mdash; <a href="https://github.com/5cover/ihdd" target="_blank" rel="noopener noreferrer">GitHub</a>
+HTML);
+

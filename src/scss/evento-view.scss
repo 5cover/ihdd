@@ -70,16 +70,20 @@ footer {
     padding: 1em 0;
     background: #222;
     color: #fff;
-    font-size: 0.8em;
     margin-top: 2em;
 
     // A nihilistic whisper to remind us all of life's futility
     &:after {
         content: "In the end, nothing really matters.";
+        font-size: .8em;
         display: block;
         margin-top: 0.5em;
         font-style: italic;
         opacity: 0.7;
+    }
+
+    a {
+        color: white;
     }
 }
 
@@ -173,6 +177,8 @@ blockquote {
     grid-template-columns: repeat(auto-fill, minmax(10em, 1fr));
     gap: 1em;
     padding: 1em;
+    padding-top: 0;
+    margin-top: 0;
     overflow: auto;
 
     li {
@@ -226,6 +232,10 @@ blockquote {
             border: 1px solid #ccc;
         }
     }
+
+    #petit-tips {
+        display: none;
+    }
 }
 
 h1 {
@@ -251,4 +261,14 @@ h1 {
         max-height: 60em;
         overflow-y: auto;
     }
+}
+
+#petit-tips {
+    margin: 0;
+    margin-right: 2em;
+    text-align: right;
+    margin-bottom: .25em;
+    padding: 0;
+    display: block;
+    font-style: italic;
 }
