@@ -28,7 +28,7 @@ export default class QualifiedName {
     }
 
     compareTo(other: this) {
-        return this.schemaName.localeCompare(other.relationName)
+        return this.schemaName.localeCompare(other.schemaName)
             || this.relationName.localeCompare(other.relationName);
     }
 }
